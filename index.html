@@ -1,129 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown with LaTeX</title>
-    <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.12/marked.min.js"></script>
-    <!-- MathJax for LaTeX rendering -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>Elm with HTML and LaTeX Math</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            line-height: 1.6;
+        .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            font-family: Arial, sans-serif;
         }
-        #content {
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 5px;
+        .math-block {
             background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
         }
-        pre {
-            background-color: #f1f1f1;
-            padding: 10px;
-            border-radius: 3px;
-            overflow-x: auto;
-        }
-        code {
-            background-color: #f1f1f1;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .file-selector {
-            margin-bottom: 20px;
-        }
-        select {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        .math-display {
+            margin: 15px 0;
         }
     </style>
-    <script>
-        // Configure MathJax
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true
-            },
-            svg: {
-                fontCache: 'global'
-            }
-        };
-
-        // List of available markdown files (update this list with your files)
-        const availableFiles = [
-            { name: "README.md", label: "README" },
-            { name: "example.md", label: "Example Document" },
-            { name: "math.md", label: "Math Examples" }
-        ];
-
-        // Function to render markdown string
-        function renderMarkdown(markdown) {
-            const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = marked.parse(markdown);
-            
-            // Typeset the math after rendering markdown
-            MathJax.typesetPromise([contentDiv]).catch(err => console.error('Error typesetting math:', err));
-        }
-
-        // Function to load and render markdown content
-        async function loadAndRenderMarkdown(filename) {
-            try {
-                // This requires running a local server
-                const response = await fetch(filename);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch: ${response.status}`);
-                }
-                const markdownText = await response.text();
-                renderMarkdown(markdownText);
-            } catch (error) {
-                console.error('Error loading markdown:', error);
-                renderMarkdown(`# Error Loading File
-
-Unable to load **${filename}**.`);
-            }
-        }
-
-        // When page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate the file selector
-            const selector = document.getElementById('file-selector');
-            availableFiles.forEach(file => {
-                const option = document.createElement('option');
-                option.value = file.name;
-                option.textContent = file.label;
-                selector.appendChild(option);
-            });
-            
-            // Handle file selection
-            selector.addEventListener('change', function(event) {
-                loadAndRenderMarkdown(event.target.value);
-            });
-            
-            // Load the first file by default
-            if (availableFiles.length > 0) {
-                selector.value = availableFiles[0].name;
-                loadAndRenderMarkdown(availableFiles[0].name);
-            }
-        });
-    </script>
+    <!-- Include MathJax for LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <h1>Markdown with LaTeX Renderer</h1>
-    
-    <div class="file-selector">
-        <label for="file-selector">Select a file:</label>
-        <select id="file-selector"></select>
-    </div>
-    
-    <div id="content">
-        Loading content...
-    </div>
+    <div id="elm-app"></div>
+    <script src="elm.js"></script>
+    <script>
+        // Initialize the Elm application
+        var app = Elm.Main.init({
+            node: document.getElementById('elm-app')
+        });
+        
+        // Configure MathJax to typeset when the page loads
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // MathJax will automatically process math elements when it loads
+            // If you need to process dynamically added content later, you can use:
+            // MathJax.typeset();
+        });
+    </script>
 </body>
 </html>
