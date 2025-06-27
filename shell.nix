@@ -6,6 +6,7 @@ pkgs.mkShell {
     caddy
     elmPackages.elm
     elmPackages.elm-format
+    elmPackages.elm-language-server
     elmPackages.elm-optimize-level-2
     elmPackages.elm-review
     elmPackages.elm-test
