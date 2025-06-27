@@ -20,6 +20,23 @@
                 ]
             }
         });
+
+        app.ports.renderMathJax.subscribe(function() {
+            // Wait a tiny bit to ensure the DOM is updated
+            setTimeout(function() {
+                if (typeof MathJax === 'undefined') {
+                    console.error('MathJax is not loaded. Please include the MathJax script in your HTML.');
+                    return;
+                }
+                
+                if (MathJax.version && parseInt(MathJax.version.split('.')[0]) >= 3) {
+                    var elements = document.getElementsByClassName('markdown-content');
+                    MathJax.typeset(elements);
+                } else {
+                    console.error('Unsupported MathJax version. Please use MathJax v3.');
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html>

@@ -1,10 +1,13 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Http
 import Markdown exposing (toHtml)
+
+
+port renderMathJax : () -> Cmd msg
 
 
 type alias Parameters =
@@ -64,7 +67,7 @@ update msg model =
         GotContent result ->
             case result of
                 Ok content ->
-                    ( { model | content = content, status = Success }, Cmd.none )
+                    ( { model | content = content, status = Success }, renderMathJax () )
 
                 Err error ->
                     ( { model | status = Failure error }, Cmd.none )
