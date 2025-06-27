@@ -3,23 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Elm with HTML and LaTeX Math</title>
-    <style>
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-        }
-        .math-block {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .math-display {
-            margin: 15px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
     <!-- Include MathJax for LaTeX rendering -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
@@ -27,17 +11,14 @@
     <div id="elm-app"></div>
     <script src="elm.js"></script>
     <script>
-        // Initialize the Elm application
         var app = Elm.Main.init({
-            node: document.getElementById('elm-app')
-        });
-        
-        // Configure MathJax to typeset when the page loads
-        window.addEventListener('DOMContentLoaded', (event) => {
-            // MathJax will automatically process math elements when it loads
-            // If you need to process dynamically added content later, you can use:
-            // MathJax.typeset();
-            
+            node: document.getElementById('elm-app'),
+            flags: {
+                baseContentUrl: "https://raw.githubusercontent.com/WilliamDue/WilliamDue.github.io/refs/heads/main",
+                content : [
+                    "content/blog/main.md"
+                ]
+            }
         });
     </script>
 </body>
