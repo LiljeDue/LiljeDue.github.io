@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- Include MathJax for LaTeX rendering -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Load content definitions before Elm -->
+    <script src='content.js'></script>
 </head>
 <body>
     <div id="elm-app"></div>
@@ -15,14 +17,10 @@
             node: document.getElementById('elm-app'),
             flags: {
                 baseContentUrl: "https://raw.githubusercontent.com/WilliamDue/WilliamDue.github.io/refs/heads/main",
-                content : [
-                    "/content/blog/example1.md",
-                    "/content/blog/example2.md",
-                    "/content/blog/example3.md"
-                ]
+                content : content // This should be defined in content.js
             }
         });
-
+        
         app.ports.renderMathJax.subscribe(function() {
             // Wait a tiny bit to ensure the DOM is updated
             setTimeout(function() {
@@ -39,6 +37,6 @@
                 }
             }, 100);
         });
-    </script>
+        </script>
 </body>
 </html>
