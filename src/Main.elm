@@ -8,6 +8,7 @@ import Http
 import Json.Decode exposing (Decoder, decodeString, field, string)
 import Markdown exposing (toHtml)
 import StringTrie exposing (Trie)
+import Task
 
 
 port renderMathJax : () -> Cmd msg
@@ -62,24 +63,16 @@ init params =
       , baseContentUrl = params.baseContentUrl
       , status = Loading
       , currentPage = Home
-      , blogPosts = getBlogPosts params.baseContentUrl trie
+      , blogPosts = [] -- getBlogPosts params.baseContentUrl trie
       }
     , Cmd.none
     )
 
 
-fetchMarkdown : Model -> String -> Cmd Msg
-fetchMarkdown model path =
-    Http.get
-        { url = model.baseContentUrl ++ "/" ++ path
-        , expect = Http.expectString Markdown
-        }
-
-
 type Msg
     = GotMarkdown (Result Http.Error String)
+    | GotBlogPosts (Result Http.Error (List BlogPost))
     | NavigateTo Page
-    | GotMetadata (Result Http.Error String) -- New message type
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -94,17 +87,29 @@ update msg model =
                     ( { model | status = Failure error }, Cmd.none )
 
         NavigateTo page ->
-            ( { model | currentPage = page }
-            , renderMathJax ()
-            )
+            case page of
+                Home ->
+                    ( { model | currentPage = Home, status = Loading, markdownContent = "" }
+                    , Cmd.none
+                    )
 
-        GotMetadata result ->
+                Blog ->
+                    ( { model | currentPage = Blog, status = Loading, markdownContent = "" }
+                    , fetchBlogPosts model.baseContentUrl model.content
+                    )
+
+                Projects ->
+                    ( { model | currentPage = Projects, status = Loading, markdownContent = "" }
+                    , Cmd.none
+                    )
+
+        GotBlogPosts result ->
             case result of
-                Ok jsonString ->
-                    ( { model | blogMetadata = Just (processMetadata jsonString) }, Cmd.none )
+                Ok posts ->
+                    ( { model | blogPosts = posts, status = Success }, Cmd.none )
 
-                Err _ ->
-                    ( model, Cmd.none )
+                Err error ->
+                    ( { model | status = Failure error }, Cmd.none )
 
 
 type alias BlogMeta =
@@ -117,7 +122,7 @@ type alias BlogMeta =
 
 type alias BlogPost =
     { meta : BlogMeta
-    , content : String
+    , url : String
     }
 
 
@@ -150,15 +155,36 @@ processMetadata jsonString =
             }
 
 
-getBlogPosts : String -> Trie () -> List BlogPost
-getBlogPosts contentBaseUrl trie =
+httpGets : { urls : List String, toMesage : Result Http.Error (List String) -> msg } -> Cmd msg
+httpGets request =
+    request.urls
+        |> List.map
+            (\url ->
+                Http.task
+                    { url = url
+                    , method = "GET"
+                    , headers = []
+                    , body = Http.emptyBody
+                    , resolver =
+                        Http.stringResolver
+                            (\response ->
+                                case response of
+                                    Http.GoodStatus_ _ body ->
+                                        Ok body
+
+                                    _ ->
+                                        Err (Http.BadBody "Failed to get meta file")
+                            )
+                    , timeout = Nothing
+                    }
+            )
+        |> Task.sequence
+        |> Task.attempt request.toMesage
+
+
+fetchBlogPosts : String -> Trie () -> Cmd Msg
+fetchBlogPosts contentBaseUrl trie =
     let
-        contentSuffix =
-            "/main.md"
-
-        metaSuffix =
-            "/meta.json"
-
         files =
             StringTrie.expand "content/blog/" trie
                 |> List.map Tuple.first
@@ -167,16 +193,21 @@ getBlogPosts contentBaseUrl trie =
             List.filter (String.endsWith suffix) path
                 |> List.filter (not << String.contains "/" << String.dropRight (String.length suffix))
 
-        metas =
-            auxiliary metaSuffix files
-                |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
-                |> List.map processMetadata
-
         mainPosts =
-            auxiliary contentSuffix files
+            auxiliary "/main.md" files
                 |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
     in
-    List.map2 (\content meta -> { meta = meta, content = content }) mainPosts metas
+    httpGets
+        { urls = auxiliary "/meta.json" files
+        , toMesage =
+            \result ->
+                case result of
+                    Ok jsonStrings ->
+                        GotBlogPosts (Ok (List.map2 (\url json -> { meta = processMetadata json, url = url }) mainPosts jsonStrings))
+
+                    Err error ->
+                        GotBlogPosts (Err error)
+        }
 
 
 view : Model -> Html Msg
@@ -244,6 +275,23 @@ viewProjects _ =
         ]
 
 
+viewBlogPosts : Model -> Html Msg
+viewBlogPosts model =
+    case model.status of
+        Loading ->
+            div [ class "loading-display" ] [ h1 [] [ text "Loading blog posts..." ] ]
+
+        Success ->
+            div []
+                (List.map
+                    (\post -> text post.meta.title)
+                    model.blogPosts
+                )
+
+        Failure _ ->
+            div [ class "error-display" ] [ h1 [] [ text "Failed to load blog posts. Please try again later." ] ]
+
+
 viewContent : Model -> Html Msg
 viewContent model =
     case model.currentPage of
@@ -251,48 +299,8 @@ viewContent model =
             viewHome model
 
         Blog ->
-            text (String.join "\n" (getBlogPosts model))
+            -- list meta and posts
+            viewBlogPosts model
 
         Projects ->
             viewProjects model
-
-
-fetchMetadata : Model -> String -> Cmd Msg
-fetchMetadata model path =
-    Http.get
-        { url = model.baseContentUrl ++ "/" ++ path ++ "/meta.json"
-        , expect = Http.expectString GotMetadata
-        }
-
-
-viewBlogWithMetadata : Model -> Html Msg
-viewBlogWithMetadata model =
-    let
-        metadataView =
-            case model.blogMetadata of
-                Just meta ->
-                    div [ class "blog-metadata" ]
-                        [ h1 [] [ text meta.title ]
-                        , div [ class "blog-info" ]
-                            [ span [ class "date" ] [ text meta.date ]
-                            , span [ class "author" ] [ text ("by " ++ meta.author) ]
-                            ]
-                        , p [ class "description" ] [ text meta.description ]
-                        ]
-
-                Nothing ->
-                    div [] []
-    in
-    div [ class "content-display" ]
-        [ metadataView
-        , case model.status of
-            Loading ->
-                div [ class "loading-display" ] [ h1 [] [ text "Loading content..." ] ]
-
-            Success ->
-                div [ class "blog-content" ]
-                    [ toHtml [ class "markdown-content" ] model.markdownContent ]
-
-            Failure _ ->
-                div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
-        ]
