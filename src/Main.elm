@@ -136,38 +136,31 @@ update msg model =
                 newPage =
                     fromUrl url
             in
-            ( { model | url = url, currentPage = newPage, status = Loading, markdownContent = "" }
-            , case newPage of
-                Blogs ->
-                    fetchBlogPosts model.baseContentUrl model.content
-
-                Blog post ->
-                    Http.get
-                        { url = post.url
-                        , expect = Http.expectString GotMarkdown
-                        }
-
-                _ ->
-                    Cmd.none
+            ( { model | url = url, currentPage = newPage, status = Loading }
+            , Cmd.none
             )
 
         NavigateTo page ->
-            let
-                url =
-                    case page of
-                        Home ->
-                            "/"
+            case page of
+                Home ->
+                    ( model, Nav.pushUrl model.key "/" )
 
-                        Blogs ->
-                            "/blogs"
+                Blogs ->
+                    ( model, Nav.pushUrl model.key "/blogs" )
 
-                        Projects ->
-                            "/projects"
+                Projects ->
+                    ( model, Nav.pushUrl model.key "/projects" )
 
-                        Blog post ->
-                            "/blog/" ++ post.href
-            in
-            ( model, Nav.pushUrl model.key url )
+                Blog post ->
+                    ( model
+                    , Cmd.batch
+                        [ Nav.pushUrl model.key ("/blog/" ++ post.href)
+                        , Http.get
+                            { url = post.url
+                            , expect = Http.expectString GotMarkdown
+                            }
+                        ]
+                    )
 
         GotBlogPosts result ->
             case result of
@@ -387,7 +380,7 @@ viewProjects _ =
 
 viewBlogCard : BlogPost -> Html Msg
 viewBlogCard post =
-    div [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post)) ]
+    a [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post)) ]
         [ div []
             [ h1 [] [ text post.meta.title ]
             , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
