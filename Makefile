@@ -1,7 +1,10 @@
-.PHONY: clean build
+.PHONY: clean build debug
 
 build: content.js
 	elm make src/Main.elm --output=elm.js --optimize
+
+debug: content.js
+	elm make src/Main.elm --output=elm.js
 
 content.js: content
 	@echo "const content = [" > content.js

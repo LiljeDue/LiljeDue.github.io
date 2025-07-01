@@ -185,20 +185,30 @@ httpGets request =
 fetchBlogPosts : String -> Trie () -> Cmd Msg
 fetchBlogPosts contentBaseUrl trie =
     let
+        blogPath = "content/blog/"
+
+        pathPredicate =
+            (\n -> n /= 1) 
+            << List.length 
+            << List.filter (\x -> x == '\\')
+            << String.toList
+            << String.dropLeft (String.length blogPath)
+
         files =
-            StringTrie.expand "content/blog/" trie
+            StringTrie.expand blogPath trie
                 |> List.map Tuple.first
+                |> List.filter (\p -> (String.endsWith "/meta.json" p || String.endsWith "/main.md" p) && pathPredicate p)
+                |> List.map (Debug.log "Blog file")
 
         auxiliary suffix path =
             List.filter (String.endsWith suffix) path
-                |> List.filter (not << String.contains "/" << String.dropRight (String.length suffix))
 
         mainPosts =
             auxiliary "/main.md" files
                 |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
     in
     httpGets
-        { urls = auxiliary "/meta.json" files
+        { urls = auxiliary "/meta.json" files |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
         , toMesage =
             \result ->
                 case result of
@@ -282,11 +292,10 @@ viewBlogPosts model =
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog posts..." ] ]
 
         Success ->
-            div []
-                (List.map
-                    (\post -> text post.meta.title)
-                    model.blogPosts
-                )
+                div [] (text "Blog Posts" :: (List.map
+                        (\post -> text post.meta.title)
+                        model.blogPosts
+                    ))
 
         Failure _ ->
             div [ class "error-display" ] [ h1 [] [ text "Failed to load blog posts. Please try again later." ] ]
@@ -299,7 +308,6 @@ viewContent model =
             viewHome model
 
         Blog ->
-            -- list meta and posts
             viewBlogPosts model
 
         Projects ->
