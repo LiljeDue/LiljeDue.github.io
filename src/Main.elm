@@ -185,39 +185,46 @@ httpGets request =
 fetchBlogPosts : String -> Trie () -> Cmd Msg
 fetchBlogPosts contentBaseUrl trie =
     let
-        blogPath = "content/blog/"
+        blogPath =
+            "content/blog/"
 
         pathPredicate =
-            (\n -> n /= 1) 
-            << List.length 
-            << List.filter (\x -> x == '\\')
-            << String.toList
-            << String.dropLeft (String.length blogPath)
+            (\n -> n /= 1)
+                << List.length
+                << List.filter (\x -> x == '\\')
+                << String.toList
+                << String.dropLeft (String.length blogPath)
+
+        isPost p = 
+            String.endsWith "/post.json" p
+            || String.endsWith "/post.md" p
 
         files =
             StringTrie.expand blogPath trie
                 |> List.map Tuple.first
-                |> List.filter (\p -> (String.endsWith "/meta.json" p || String.endsWith "/main.md" p) && pathPredicate p)
+                |> List.filter (\p -> isPost p && pathPredicate p)
                 |> List.map (Debug.log "Blog file")
 
-        auxiliary suffix path =
-            List.filter (String.endsWith suffix) path
-
-        mainPosts =
-            auxiliary "/main.md" files
-                |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
+        (blogs, metas) =
+            files
+            |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
+            |> List.partition
+                (\s -> String.endsWith "/main.md" s)
     in
-    httpGets
-        { urls = auxiliary "/meta.json" files |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
-        , toMesage =
-            \result ->
-                case result of
-                    Ok jsonStrings ->
-                        GotBlogPosts (Ok (List.map2 (\url json -> { meta = processMetadata json, url = url }) mainPosts jsonStrings))
+    if List.length blogs == List.length metas then
+        httpGets
+            { urls = metas
+            , toMesage =
+                \result ->
+                    case result of
+                        Ok jsonStrings ->
+                            GotBlogPosts (Ok (List.map2 (\url json -> { meta = processMetadata json, url = url }) blogs jsonStrings))
 
-                    Err error ->
-                        GotBlogPosts (Err error)
-        }
+                        Err error ->
+                            GotBlogPosts (Err error)
+            }
+    else
+        Cmd.none
 
 
 view : Model -> Html Msg
@@ -292,10 +299,12 @@ viewBlogPosts model =
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog posts..." ] ]
 
         Success ->
-                div [] (text "Blog Posts" :: (List.map
+            div []
+                (text "Blog Posts"
+                    :: List.map
                         (\post -> text post.meta.title)
                         model.blogPosts
-                    ))
+                )
 
         Failure _ ->
             div [ class "error-display" ] [ h1 [] [ text "Failed to load blog posts. Please try again later." ] ]
