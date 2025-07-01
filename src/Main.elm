@@ -1,14 +1,16 @@
 port module Main exposing (main)
 
 import Browser
+import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
-import Json.Decode exposing (Decoder, decodeString, field, string)
+import Json.Decode as Decode exposing (Decoder)
 import Markdown exposing (toHtml)
 import StringTrie exposing (Trie)
 import Task
+import Time exposing (Month(..))
 
 
 port renderMathJax : () -> Cmd msg
@@ -16,7 +18,7 @@ port renderMathJax : () -> Cmd msg
 
 type Page
     = Home
-    | Blog
+    | Blogs
     | Projects
 
 
@@ -63,7 +65,7 @@ init params =
       , baseContentUrl = params.baseContentUrl
       , status = Loading
       , currentPage = Home
-      , blogPosts = [] -- getBlogPosts params.baseContentUrl trie
+      , blogPosts = []
       }
     , Cmd.none
     )
@@ -93,8 +95,8 @@ update msg model =
                     , Cmd.none
                     )
 
-                Blog ->
-                    ( { model | currentPage = Blog, status = Loading, markdownContent = "" }
+                Blogs ->
+                    ( { model | currentPage = Blogs, status = Loading, markdownContent = "" }
                     , fetchBlogPosts model.baseContentUrl model.content
                     )
 
@@ -114,7 +116,7 @@ update msg model =
 
 type alias BlogMeta =
     { title : String
-    , date : String
+    , date : Date
     , author : String
     , description : String
     }
@@ -126,22 +128,36 @@ type alias BlogPost =
     }
 
 
+decodeDate : Decoder Date
+decodeDate =
+    Decode.string
+        |> Decode.andThen
+            (\dateString ->
+                case Date.fromIsoString dateString of
+                    Ok dateValue ->
+                        Decode.succeed dateValue
+
+                    Err _ ->
+                        Decode.fail "Invalid date format"
+            )
+
+
 blogMetaDecoder : Decoder BlogMeta
 blogMetaDecoder =
-    Json.Decode.map4 BlogMeta
-        (field "title" string)
-        (field "date" string)
-        (field "author" string)
-        (field "description" string)
+    Decode.map4 BlogMeta
+        (Decode.field "title" Decode.string)
+        (Decode.field "date" decodeDate)
+        (Decode.field "author" Decode.string)
+        (Decode.field "description" Decode.string)
 
 
-parseBlogMeta : String -> Result Json.Decode.Error BlogMeta
+parseBlogMeta : String -> Result Decode.Error BlogMeta
 parseBlogMeta jsonString =
-    decodeString blogMetaDecoder jsonString
+    Decode.decodeString blogMetaDecoder jsonString
 
 
-processMetadata : String -> BlogMeta
-processMetadata jsonString =
+decodeBlogMeta : String -> BlogMeta
+decodeBlogMeta jsonString =
     case parseBlogMeta jsonString of
         Ok metadata ->
             metadata
@@ -149,7 +165,7 @@ processMetadata jsonString =
         Err _ ->
             -- Provide default values when JSON parsing fails
             { title = "Untitled"
-            , date = "Unknown date"
+            , date = Date.fromCalendarDate 1970 Jan 1
             , author = "Unknown author"
             , description = "No description available"
             }
@@ -190,26 +206,23 @@ fetchBlogPosts contentBaseUrl trie =
 
         pathPredicate =
             (\n -> n /= 1)
-                << List.length
-                << List.filter (\x -> x == '\\')
-                << String.toList
+                << String.length
+                << String.filter (\x -> x == '\\')
                 << String.dropLeft (String.length blogPath)
 
-        isPost p = 
+        isPost p =
             String.endsWith "/post.json" p
-            || String.endsWith "/post.md" p
+                || String.endsWith "/post.md" p
 
         files =
             StringTrie.expand blogPath trie
                 |> List.map Tuple.first
                 |> List.filter (\p -> isPost p && pathPredicate p)
-                |> List.map (Debug.log "Blog file")
 
-        (blogs, metas) =
+        ( blogs, metas ) =
             files
-            |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
-            |> List.partition
-                (\s -> String.endsWith "/main.md" s)
+                |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
+                |> List.partition (\s -> String.endsWith "/post.md" s)
     in
     if List.length blogs == List.length metas then
         httpGets
@@ -218,11 +231,17 @@ fetchBlogPosts contentBaseUrl trie =
                 \result ->
                     case result of
                         Ok jsonStrings ->
-                            GotBlogPosts (Ok (List.map2 (\url json -> { meta = processMetadata json, url = url }) blogs jsonStrings))
+                            GotBlogPosts
+                                (Ok
+                                    (List.map2 (\url json -> { meta = decodeBlogMeta json, url = url }) blogs jsonStrings
+                                        |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
+                                    )
+                                )
 
                         Err error ->
                             GotBlogPosts (Err error)
             }
+
     else
         Cmd.none
 
@@ -256,7 +275,7 @@ viewNavBar currentPage =
     nav [ class "navbar" ]
         [ ul [ class "navbar-items" ]
             [ viewNavBarItem currentPage Home "Home"
-            , viewNavBarItem currentPage Blog "Blog"
+            , viewNavBarItem currentPage Blogs "Blog"
             , viewNavBarItem currentPage Projects "Projects"
             ]
         ]
@@ -266,29 +285,39 @@ viewBlog : Model -> Html Msg
 viewBlog model =
     case model.status of
         Loading ->
-            div [ class "loading-display" ] [ h1 [] [ text "Loading content..." ] ]
+            div [ class "loading-display" ] [ h1 [] [ text "Loading blog..." ] ]
 
         Success ->
             div [ class "content-display" ]
                 [ toHtml [ class "markdown-content" ] model.markdownContent ]
 
         Failure _ ->
-            div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
+            div [ class "error-display" ] [ h1 [] [ text "Failed to load blog. Please try again later." ] ]
 
 
 viewHome : Model -> Html Msg
 viewHome _ =
     div [ class "content-display" ]
-        [ h1 [] [ text "Hello World" ]
-        , p [] [ text "Welcome to my personal website!" ]
+        [ p [] [ text "Welcome to my personal website!" ]
         ]
 
 
 viewProjects : Model -> Html Msg
 viewProjects _ =
     div [ class "content-display" ]
-        [ h1 [] [ text "My Projects" ]
-        , p [] [ text "This section will contain my projects." ]
+        [ p [] [ text "This section will contain my projects." ]
+        ]
+
+
+viewBlogCard : BlogPost -> Html Msg
+viewBlogCard post =
+    div [ class "blog-card" ]
+        [ div []
+            [ h1 [] [ text post.meta.title ]
+            , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
+            , br [] []    
+            , p [] [ text post.meta.description ]
+            ]
         ]
 
 
@@ -299,12 +328,8 @@ viewBlogPosts model =
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog posts..." ] ]
 
         Success ->
-            div []
-                (text "Blog Posts"
-                    :: List.map
-                        (\post -> text post.meta.title)
-                        model.blogPosts
-                )
+            div [ class "content-display" ]
+                (List.map viewBlogCard model.blogPosts)
 
         Failure _ ->
             div [ class "error-display" ] [ h1 [] [ text "Failed to load blog posts. Please try again later." ] ]
@@ -316,7 +341,7 @@ viewContent model =
         Home ->
             viewHome model
 
-        Blog ->
+        Blogs ->
             viewBlogPosts model
 
         Projects ->
