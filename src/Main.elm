@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Nav
 import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (class)
@@ -11,10 +12,8 @@ import Markdown exposing (toHtml)
 import StringTrie exposing (Trie)
 import Task
 import Time exposing (Month(..))
-import Browser
-import Browser.Navigation as Nav
 import Url
-import Url.Parser as Parser exposing (Parser, (</>))
+import Url.Parser as Parser exposing ((</>), Parser)
 
 
 port renderMathJax : () -> Cmd msg
@@ -31,6 +30,7 @@ type alias Parameters =
     { baseContentUrl : String
     , content : List String
     }
+
 
 type alias Model =
     { content : Trie ()
@@ -49,6 +49,7 @@ type Status
     | Success
     | Failure Http.Error
 
+
 type Msg
     = GotMarkdown (Result Http.Error String)
     | GotBlogPosts (Result Http.Error (List BlogPost))
@@ -56,17 +57,17 @@ type Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
 
+
 main : Program Parameters Model Msg
 main =
     Browser.application
         { init = init
-        , view = \model -> { title = "My Website", body = [view model] }
+        , view = \model -> { title = "My Website", body = [ view model ] }
         , update = update
         , subscriptions = \_ -> Sub.none
         , onUrlChange = UrlChanged
         , onUrlRequest = LinkClicked
         }
-
 
 
 routeParser : Parser (Page -> a) a
@@ -78,21 +79,25 @@ routeParser =
         , Parser.map Projects (Parser.s "projects")
         ]
 
+
 fromUrl : Url.Url -> Page
 fromUrl url =
     case Parser.parse routeParser url of
         Just page ->
             page
+
         Nothing ->
             Home
+
 
 init : Parameters -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init params url key =
     let
         trie =
             StringTrie.fromList (List.map (\s -> ( s, () )) params.content)
-        
-        initialPage = fromUrl url
+
+        initialPage =
+            fromUrl url
     in
     ( { content = trie
       , markdownContent = ""
@@ -103,10 +108,9 @@ init params url key =
       , key = key
       , url = url
       }
-    , case initialPage of
-        Blogs -> fetchBlogPosts params.baseContentUrl trie
-        _ -> Cmd.none
+    , fetchBlogPosts params.baseContentUrl trie
     )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -129,25 +133,39 @@ update msg model =
 
         UrlChanged url ->
             let
-                newPage = fromUrl url
+                newPage =
+                    fromUrl url
             in
             ( { model | url = url, currentPage = newPage, status = Loading, markdownContent = "" }
             , case newPage of
-                Blogs -> fetchBlogPosts model.baseContentUrl model.content
-                Blog post -> Http.get
-                    { url = post.url
-                    , expect = Http.expectString GotMarkdown
-                    }
-                _ -> Cmd.none
+                Blogs ->
+                    fetchBlogPosts model.baseContentUrl model.content
+
+                Blog post ->
+                    Http.get
+                        { url = post.url
+                        , expect = Http.expectString GotMarkdown
+                        }
+
+                _ ->
+                    Cmd.none
             )
 
         NavigateTo page ->
             let
-                url = case page of
-                    Home -> "/"
-                    Blogs -> "/blogs"
-                    Projects -> "/projects"
-                    Blog post -> "/blog/" ++ post.href
+                url =
+                    case page of
+                        Home ->
+                            "/"
+
+                        Blogs ->
+                            "/blogs"
+
+                        Projects ->
+                            "/projects"
+
+                        Blog post ->
+                            "/blog/" ++ post.href
             in
             ( model, Nav.pushUrl model.key url )
 
@@ -158,6 +176,7 @@ update msg model =
 
                 Err error ->
                     ( { model | status = Failure error }, Cmd.none )
+
 
 type alias BlogMeta =
     { title : String
@@ -271,7 +290,7 @@ fetchBlogPosts contentBaseUrl trie =
 
         href =
             String.dropLeft (String.length blogPath)
-            << String.dropRight (String.length "/post.md")
+                << String.dropRight (String.length "/post.md")
     in
     if List.length blogs == List.length metas then
         httpGets
@@ -282,11 +301,15 @@ fetchBlogPosts contentBaseUrl trie =
                         Ok jsonStrings ->
                             GotBlogPosts
                                 (Ok
-                                    (List.map2 (\url json ->
-                                    { meta = decodeBlogMeta json
-                                    , url = contentBaseUrl ++ "/" ++ url
-                                    , href = href url
-                                     }) blogs jsonStrings
+                                    (List.map2
+                                        (\url json ->
+                                            { meta = decodeBlogMeta json
+                                            , url = contentBaseUrl ++ "/" ++ url
+                                            , href = href url
+                                            }
+                                        )
+                                        blogs
+                                        jsonStrings
                                         |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
                                     )
                                 )
@@ -304,11 +327,13 @@ viewPage model page =
     case model.status of
         Loading ->
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog post..." ] ]
+
         Success ->
             div [ class "content-display" ]
                 [ page ]
+
         Failure _ ->
-            div [ class "error-display" ] [ h1 [] [ text "Failed to load blog post. Please try again later." ] ]   
+            div [ class "error-display" ] [ h1 [] [ text "Failed to load blog post. Please try again later." ] ]
 
 
 view : Model -> Html Msg
@@ -327,11 +352,13 @@ viewNavBarItem currentPage page name href =
         activeClass =
             if currentPage == page then
                 "navbar-item active"
+
             else
                 "navbar-item"
     in
     li [ class activeClass ]
         [ a [ class "navbar-link", Html.Attributes.href href, onClick (NavigateTo page) ] [ text name ] ]
+
 
 viewNavBar : Page -> Html Msg
 viewNavBar currentPage =
@@ -342,6 +369,7 @@ viewNavBar currentPage =
             , viewNavBarItem currentPage Projects "Projects" "/projects"
             ]
         ]
+
 
 viewHome : Model -> Html Msg
 viewHome _ =
@@ -363,7 +391,7 @@ viewBlogCard post =
         [ div []
             [ h1 [] [ text post.meta.title ]
             , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-            , br [] []    
+            , br [] []
             , p [] [ text post.meta.description ]
             ]
         ]
@@ -371,17 +399,19 @@ viewBlogCard post =
 
 viewBlogPosts : Model -> Html Msg
 viewBlogPosts model =
-    viewPage model (div [  ] (List.map viewBlogCard model.blogPosts))
+    viewPage model (div [] (List.map viewBlogCard model.blogPosts))
+
 
 viewBlog : Model -> BlogPost -> Html Msg
 viewBlog model post =
-    viewPage model (div [ ]
-                [ h1 [] [ text post.meta.title ]
-                , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-                , br [] []
-                , toHtml [ class "markdown-content" ] model.markdownContent
-                ])
-
+    viewPage model
+        (div []
+            [ h1 [] [ text post.meta.title ]
+            , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
+            , br [] []
+            , toHtml [ class "markdown-content" ] model.markdownContent
+            ]
+        )
 
 
 viewContent : Model -> Html Msg
@@ -397,4 +427,4 @@ viewContent model =
             viewProjects model
 
         Blog post ->
-            viewBlog model post 
+            viewBlog model post
