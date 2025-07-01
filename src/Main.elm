@@ -270,8 +270,7 @@ fetchBlogPosts contentBaseUrl trie =
                 |> List.partition (\s -> String.endsWith "/post.md" s)
 
         href =
-            Debug.log "Path" 
-            << String.dropLeft (String.length blogPath)
+            String.dropLeft (String.length blogPath)
             << String.dropRight (String.length "/post.md")
     in
     if List.length blogs == List.length metas then
