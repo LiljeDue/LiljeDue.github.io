@@ -7,7 +7,7 @@ debug: content.js
 	elm make src/Main.elm --output=elm.js
 
 host: content.js
-	npx http-server . -o -p 8000
+	npx serve@latest -s .
 
 content.js: content
 	@echo "const content = [" > content.js

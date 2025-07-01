@@ -3,6 +3,7 @@ port module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Date exposing (Date)
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -23,7 +24,7 @@ type Page
     = Home
     | Blogs
     | Projects
-    | Blog BlogPost
+    | Blog String
 
 
 type alias Parameters =
@@ -38,7 +39,7 @@ type alias Model =
     , baseContentUrl : String
     , status : Status
     , currentPage : Page
-    , blogPosts : List BlogPost
+    , blogPosts : Dict String BlogPost
     , key : Nav.Key
     , url : Url.Url
     }
@@ -46,13 +47,14 @@ type alias Model =
 
 type Status
     = Loading
+    | LoadingBlogPosts
     | Success
     | Failure Http.Error
 
 
 type Msg
     = GotMarkdown (Result Http.Error String)
-    | GotBlogPosts (Result Http.Error (List BlogPost))
+    | GotBlogPosts (Result Http.Error (Dict String BlogPost))
     | NavigateTo Page
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
@@ -77,6 +79,7 @@ routeParser =
         , Parser.map Home (Parser.s "home")
         , Parser.map Blogs (Parser.s "blogs")
         , Parser.map Projects (Parser.s "projects")
+        , Parser.map Blog (Parser.s "blog" </> Parser.string)
         ]
 
 
@@ -98,13 +101,21 @@ init params url key =
 
         initialPage =
             fromUrl url
+
+        initialStatus =
+            case initialPage of
+                Blog _ ->
+                    LoadingBlogPosts
+
+                _ ->
+                    Success
     in
     ( { content = trie
       , markdownContent = ""
       , baseContentUrl = params.baseContentUrl
-      , status = Loading
+      , status = initialStatus
       , currentPage = initialPage
-      , blogPosts = []
+      , blogPosts = Dict.empty
       , key = key
       , url = url
       }
@@ -135,37 +146,72 @@ update msg model =
             let
                 newPage =
                     fromUrl url
+
+                newModel =
+                    { model | url = url, currentPage = newPage }
             in
-            ( { model | url = url, currentPage = newPage, status = Loading }
-            , Cmd.none
-            )
+            case newPage of
+                Blog href ->
+                    case Dict.get href model.blogPosts of
+                        Just post ->
+                            ( { newModel | status = Loading }
+                            , Http.get
+                                { url = post.url
+                                , expect = Http.expectString GotMarkdown
+                                }
+                            )
+
+                        Nothing ->
+                            ( newModel, Cmd.none )
+
+                _ ->
+                    ( newModel, Cmd.none )
 
         NavigateTo page ->
-            case page of
-                Home ->
-                    ( model, Nav.pushUrl model.key "/" )
+            let
+                url =
+                    case page of
+                        Home ->
+                            "/"
 
-                Blogs ->
-                    ( model, Nav.pushUrl model.key "/blogs" )
+                        Blogs ->
+                            "/blogs"
 
-                Projects ->
-                    ( model, Nav.pushUrl model.key "/projects" )
+                        Projects ->
+                            "/projects"
 
-                Blog post ->
-                    ( model
-                    , Cmd.batch
-                        [ Nav.pushUrl model.key ("/blog/" ++ post.href)
-                        , Http.get
-                            { url = post.url
-                            , expect = Http.expectString GotMarkdown
-                            }
-                        ]
-                    )
+                        Blog post ->
+                            "/blog/" ++ post
+            in
+            ( model, Nav.pushUrl model.key url )
 
         GotBlogPosts result ->
             case result of
                 Ok blogPosts ->
-                    ( { model | blogPosts = blogPosts, status = Success }, Cmd.none )
+                    let
+                        newModel =
+                            { model | blogPosts = blogPosts }
+
+                        -- Check if we need to load a blog post now that we have the data
+                        ( finalModel, cmd ) =
+                            case model.currentPage of
+                                Blog href ->
+                                    case Dict.get href blogPosts of
+                                        Just post ->
+                                            ( { newModel | status = Loading }
+                                            , Http.get
+                                                { url = post.url
+                                                , expect = Http.expectString GotMarkdown
+                                                }
+                                            )
+
+                                        Nothing ->
+                                            ( { newModel | status = Success }, Cmd.none )
+
+                                _ ->
+                                    ( { newModel | status = Success }, Cmd.none )
+                    in
+                    ( finalModel, cmd )
 
                 Err error ->
                     ( { model | status = Failure error }, Cmd.none )
@@ -303,7 +349,11 @@ fetchBlogPosts contentBaseUrl trie =
                                         )
                                         blogs
                                         jsonStrings
-                                        |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
+                                        |> List.map
+                                            (\post ->
+                                                ( post.href, post )
+                                            )
+                                        |> Dict.fromList
                                     )
                                 )
 
@@ -321,12 +371,15 @@ viewPage model page =
         Loading ->
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog post..." ] ]
 
+        LoadingBlogPosts ->
+            div [ class "loading-display" ] [ h1 [] [ text "Loading blog information..." ] ]
+
         Success ->
             div [ class "content-display" ]
                 [ page ]
 
         Failure _ ->
-            div [ class "error-display" ] [ h1 [] [ text "Failed to load blog post. Please try again later." ] ]
+            div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
 
 
 view : Model -> Html Msg
@@ -380,7 +433,7 @@ viewProjects _ =
 
 viewBlogCard : BlogPost -> Html Msg
 viewBlogCard post =
-    a [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post)) ]
+    div [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post.href)) ]
         [ div []
             [ h1 [] [ text post.meta.title ]
             , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
@@ -392,19 +445,30 @@ viewBlogCard post =
 
 viewBlogPosts : Model -> Html Msg
 viewBlogPosts model =
-    viewPage model (div [] (List.map viewBlogCard model.blogPosts))
+    let
+        blogPosts =
+            Dict.values model.blogPosts
+                |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
+                |> List.map viewBlogCard
+    in
+    viewPage model (div [] blogPosts)
 
 
-viewBlog : Model -> BlogPost -> Html Msg
-viewBlog model post =
-    viewPage model
-        (div []
-            [ h1 [] [ text post.meta.title ]
-            , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-            , br [] []
-            , toHtml [ class "markdown-content" ] model.markdownContent
-            ]
-        )
+viewBlog : Model -> String -> Html Msg
+viewBlog model href =
+    case Dict.get href model.blogPosts of
+        Nothing ->
+            viewPage model (div [] [ text "Blog post not found." ])
+
+        Just post ->
+            viewPage model
+                (div []
+                    [ h1 [] [ text post.meta.title ]
+                    , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
+                    , br [] []
+                    , toHtml [ class "markdown-content" ] model.markdownContent
+                    ]
+                )
 
 
 viewContent : Model -> Html Msg
