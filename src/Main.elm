@@ -147,7 +147,7 @@ update msg model =
                     Home -> "/"
                     Blogs -> "/blogs"
                     Projects -> "/projects"
-                    Blog _ -> "/blog" -- You might want to make this more specific
+                    Blog post -> "/blog/" ++ post.href
             in
             ( model, Nav.pushUrl model.key url )
 
