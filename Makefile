@@ -6,6 +6,9 @@ build: content.js
 debug: content.js
 	elm make src/Main.elm --output=elm.js
 
+host: content.js
+	npx http-server . -o -p 8000
+
 content.js: content
 	@echo "const content = [" > content.js
 	@find content -type f | sort | sed 's/^/  "/g' | sed 's/$$/",/g' >> content.js

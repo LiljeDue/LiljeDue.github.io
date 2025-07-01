@@ -170,6 +170,7 @@ type alias BlogMeta =
 type alias BlogPost =
     { meta : BlogMeta
     , url : String
+    , href : String
     }
 
 
@@ -266,19 +267,27 @@ fetchBlogPosts contentBaseUrl trie =
 
         ( blogs, metas ) =
             files
-                |> List.map (\s -> contentBaseUrl ++ "/" ++ s)
                 |> List.partition (\s -> String.endsWith "/post.md" s)
+
+        href =
+            Debug.log "Path" 
+            << String.dropLeft (String.length blogPath)
+            << String.dropRight (String.length "/post.md")
     in
     if List.length blogs == List.length metas then
         httpGets
-            { urls = metas
+            { urls = List.map (\s -> contentBaseUrl ++ "/" ++ s) metas
             , toMesage =
                 \result ->
                     case result of
                         Ok jsonStrings ->
                             GotBlogPosts
                                 (Ok
-                                    (List.map2 (\url json -> { meta = decodeBlogMeta json, url = url }) blogs jsonStrings
+                                    (List.map2 (\url json ->
+                                    { meta = decodeBlogMeta json
+                                    , url = contentBaseUrl ++ "/" ++ url
+                                    , href = href url
+                                     }) blogs jsonStrings
                                         |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
                                     )
                                 )
@@ -351,7 +360,7 @@ viewProjects _ =
 
 viewBlogCard : BlogPost -> Html Msg
 viewBlogCard post =
-    div [ class "blog-card", onClick (NavigateTo (Blog post)) ]
+    div [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post)) ]
         [ div []
             [ h1 [] [ text post.meta.title ]
             , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
