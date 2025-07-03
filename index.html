@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Elm with HTML and LaTeX Math</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
     <!-- Include MathJax for LaTeX rendering -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <!-- Load content definitions before Elm -->
-    <script src='content.js'></script>
+    <script src='/content.js'></script>
 </head>
 <body>
     <div id="elm-app"></div>
-    <script src="elm.js"></script>
+    <script src="/elm.js"></script>
     <script>
         var app = Elm.Main.init({
             node: document.getElementById('elm-app'),

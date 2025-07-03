@@ -1,4 +1,4 @@
-.PHONY: clean build debug
+.PHONY: clean build debug host
 
 build: content.js 404.html
 	elm make src/Main.elm --output=elm.js --optimize

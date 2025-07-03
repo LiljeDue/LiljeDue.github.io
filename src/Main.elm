@@ -47,7 +47,6 @@ type alias Model =
 
 type Status
     = Loading
-    | LoadingBlogPosts
     | Success
     | Failure Http.Error
 
@@ -101,19 +100,11 @@ init params url key =
 
         initialPage =
             fromUrl url
-
-        initialStatus =
-            case initialPage of
-                Blog _ ->
-                    LoadingBlogPosts
-
-                _ ->
-                    Success
     in
     ( { content = trie
       , markdownContent = ""
       , baseContentUrl = params.baseContentUrl
-      , status = initialStatus
+      , status = Loading
       , currentPage = initialPage
       , blogPosts = Dict.empty
       , key = key
@@ -370,9 +361,6 @@ viewPage model page =
     case model.status of
         Loading ->
             div [ class "loading-display" ] [ h1 [] [ text "Loading blog post..." ] ]
-
-        LoadingBlogPosts ->
-            div [ class "loading-display" ] [ h1 [] [ text "Loading blog information..." ] ]
 
         Success ->
             div [ class "content-display" ]
