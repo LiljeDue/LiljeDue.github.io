@@ -183,7 +183,6 @@ update msg model =
                         newModel =
                             { model | blogPosts = blogPosts }
 
-                        -- Check if we need to load a blog post now that we have the data
                         ( finalModel, cmd ) =
                             case model.currentPage of
                                 Blog href ->
@@ -268,6 +267,18 @@ decodeBlogMeta jsonString =
 
 httpGets : { urls : List String, toMesage : Result Http.Error (List String) -> msg } -> Cmd msg
 httpGets request =
+    let
+        resolver =
+            Http.stringResolver
+                (\response ->
+                    case response of
+                        Http.GoodStatus_ _ body ->
+                            Ok body
+
+                        _ ->
+                            Err (Http.BadBody "Failed to get meta file")
+                )
+    in
     request.urls
         |> List.map
             (\url ->
@@ -276,16 +287,7 @@ httpGets request =
                     , method = "GET"
                     , headers = []
                     , body = Http.emptyBody
-                    , resolver =
-                        Http.stringResolver
-                            (\response ->
-                                case response of
-                                    Http.GoodStatus_ _ body ->
-                                        Ok body
-
-                                    _ ->
-                                        Err (Http.BadBody "Failed to get meta file")
-                            )
+                    , resolver = resolver
                     , timeout = Nothing
                     }
             )
