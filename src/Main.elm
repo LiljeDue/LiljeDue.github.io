@@ -15,55 +15,47 @@ import Task
 import Time exposing (Month(..))
 import Url
 import Url.Parser as Parser exposing ((</>), Parser)
+import Model exposing (..)
+import Blog exposing (..)
 
 
 port renderMathJax : () -> Cmd msg
 
 
-type Page
-    = Home
-    | Blogs
-    | Projects
-    | Blog String
+
+-- Handle the HTTP response for blog posts
+handleBlogPostsResponse : String -> List String -> Result Http.Error (List String) -> Msg
+handleBlogPostsResponse contentBaseUrl markdownFiles result =
+    result
+        |> Result.map (buildBlogPostDict contentBaseUrl markdownFiles)
+        |> GotBlogPosts
 
 
-type alias Parameters =
-    { baseContentUrl : String
-    , content : List String
-    }
+fetchBlogPosts : String -> Trie () -> Cmd Msg
+fetchBlogPosts contentBaseUrl trie =
+    case blogPostFiles trie of
+        ValidBlogPosts posts ->
+            fetchBlogMetadata contentBaseUrl posts
+        
+        MismatchedBlogPosts ->
+            Cmd.none
 
 
-type alias Model =
-    { content : Trie ()
-    , markdownContent : String
-    , baseContentUrl : String
-    , status : Status
-    , currentPage : Page
-    , blogPosts : Dict String BlogPost
-    , key : Nav.Key
-    , url : Url.Url
-    }
 
-
-type Status
-    = Loading
-    | Success
-    | Failure Http.Error
-
-
-type Msg
-    = GotMarkdown (Result Http.Error String)
-    | GotBlogPosts (Result Http.Error (Dict String BlogPost))
-    | NavigateTo Page
-    | LinkClicked Browser.UrlRequest
-    | UrlChanged Url.Url
+-- Fetch metadata for all blog posts
+fetchBlogMetadata : String -> { markdownFiles : List String, metaFiles : List String } -> Cmd Msg
+fetchBlogMetadata contentBaseUrl { markdownFiles, metaFiles } =
+    httpGets
+        { urls = List.map (buildContentUrl contentBaseUrl) metaFiles
+        , toMesage = handleBlogPostsResponse contentBaseUrl markdownFiles
+        }
 
 
 main : Program Parameters Model Msg
 main =
     Browser.application
         { init = init
-        , view = \model -> { title = "My Website", body = [ view model ] }
+        , view = \model -> { title = "Due's Website", body = [ view model ] }
         , update = update
         , subscriptions = \_ -> Sub.none
         , onUrlChange = UrlChanged
@@ -71,47 +63,51 @@ main =
         }
 
 
-routeParser : Parser (Page -> a) a
-routeParser =
-    Parser.oneOf
-        [ Parser.map Home Parser.top
-        , Parser.map Home (Parser.s "home")
-        , Parser.map Blogs (Parser.s "blogs")
-        , Parser.map Projects (Parser.s "projects")
-        , Parser.map Blog (Parser.s "blog" </> Parser.string)
-        ]
-
-
-fromUrl : Url.Url -> Page
-fromUrl url =
-    case Parser.parse routeParser url of
-        Just page ->
-            page
-
-        Nothing ->
-            Home
-
-
-init : Parameters -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init params url key =
+urlChanged : Model -> Url.Url -> ( Model, Cmd Msg )
+urlChanged model url =
     let
-        trie =
-            StringTrie.fromList (List.map (\s -> ( s, () )) params.content)
-
-        initialPage =
+        newPage =
             fromUrl url
+
+        newModel =
+            { model | url = url, currentPage = newPage }
     in
-    ( { content = trie
-      , markdownContent = ""
-      , baseContentUrl = params.baseContentUrl
-      , status = Loading
-      , currentPage = initialPage
-      , blogPosts = Dict.empty
-      , key = key
-      , url = url
-      }
-    , fetchBlogPosts params.baseContentUrl trie
-    )
+    case newPage of
+        Blog href ->
+            case Dict.get href model.blogPosts of
+                Just post ->
+                    ( { newModel | status = Loading }
+                    , Http.get
+                        { url = post.url
+                        , expect = Http.expectString GotMarkdown
+                        }
+                    )
+
+                Nothing ->
+                    ( newModel, Cmd.none )
+
+        _ ->
+            ( newModel, Cmd.none )
+
+
+navigateTo : Model -> Page -> ( Model, Cmd Msg )
+navigateTo model page =
+    let
+        url =
+            case page of
+                Home ->
+                    "/"
+
+                Blogs ->
+                    "/blog"
+
+                Projects ->
+                    "/projects"
+
+                Blog post ->
+                    "/blog/" ++ post
+    in
+    ( model, Nav.pushUrl model.key url )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -134,47 +130,10 @@ update msg model =
                     ( model, Nav.load href )
 
         UrlChanged url ->
-            let
-                newPage =
-                    fromUrl url
-
-                newModel =
-                    { model | url = url, currentPage = newPage }
-            in
-            case newPage of
-                Blog href ->
-                    case Dict.get href model.blogPosts of
-                        Just post ->
-                            ( { newModel | status = Loading }
-                            , Http.get
-                                { url = post.url
-                                , expect = Http.expectString GotMarkdown
-                                }
-                            )
-
-                        Nothing ->
-                            ( newModel, Cmd.none )
-
-                _ ->
-                    ( newModel, Cmd.none )
+            urlChanged model url
 
         NavigateTo page ->
-            let
-                url =
-                    case page of
-                        Home ->
-                            "/"
-
-                        Blogs ->
-                            "/blogs"
-
-                        Projects ->
-                            "/projects"
-
-                        Blog post ->
-                            "/blog/" ++ post
-            in
-            ( model, Nav.pushUrl model.key url )
+            navigateTo model page
 
         GotBlogPosts result ->
             case result of
@@ -205,157 +164,6 @@ update msg model =
 
                 Err error ->
                     ( { model | status = Failure error }, Cmd.none )
-
-
-type alias BlogMeta =
-    { title : String
-    , date : Date
-    , author : String
-    , description : String
-    }
-
-
-type alias BlogPost =
-    { meta : BlogMeta
-    , url : String
-    , href : String
-    }
-
-
-decodeDate : Decoder Date
-decodeDate =
-    Decode.string
-        |> Decode.andThen
-            (\dateString ->
-                case Date.fromIsoString dateString of
-                    Ok dateValue ->
-                        Decode.succeed dateValue
-
-                    Err _ ->
-                        Decode.fail "Invalid date format"
-            )
-
-
-blogMetaDecoder : Decoder BlogMeta
-blogMetaDecoder =
-    Decode.map4 BlogMeta
-        (Decode.field "title" Decode.string)
-        (Decode.field "date" decodeDate)
-        (Decode.field "author" Decode.string)
-        (Decode.field "description" Decode.string)
-
-
-parseBlogMeta : String -> Result Decode.Error BlogMeta
-parseBlogMeta jsonString =
-    Decode.decodeString blogMetaDecoder jsonString
-
-
-decodeBlogMeta : String -> BlogMeta
-decodeBlogMeta jsonString =
-    case parseBlogMeta jsonString of
-        Ok metadata ->
-            metadata
-
-        Err _ ->
-            -- Provide default values when JSON parsing fails
-            { title = "Untitled"
-            , date = Date.fromCalendarDate 1970 Jan 1
-            , author = "Unknown author"
-            , description = "No description available"
-            }
-
-
-httpGets : { urls : List String, toMesage : Result Http.Error (List String) -> msg } -> Cmd msg
-httpGets request =
-    let
-        resolver =
-            Http.stringResolver
-                (\response ->
-                    case response of
-                        Http.GoodStatus_ _ body ->
-                            Ok body
-
-                        _ ->
-                            Err (Http.BadBody "Failed to get meta file")
-                )
-    in
-    request.urls
-        |> List.map
-            (\url ->
-                Http.task
-                    { url = url
-                    , method = "GET"
-                    , headers = []
-                    , body = Http.emptyBody
-                    , resolver = resolver
-                    , timeout = Nothing
-                    }
-            )
-        |> Task.sequence
-        |> Task.attempt request.toMesage
-
-
-fetchBlogPosts : String -> Trie () -> Cmd Msg
-fetchBlogPosts contentBaseUrl trie =
-    let
-        blogPath =
-            "content/blog/"
-
-        pathPredicate =
-            (\n -> n /= 1)
-                << String.length
-                << String.filter (\x -> x == '\\')
-                << String.dropLeft (String.length blogPath)
-
-        isPost p =
-            String.endsWith "/post.json" p
-                || String.endsWith "/post.md" p
-
-        files =
-            StringTrie.expand blogPath trie
-                |> List.map Tuple.first
-                |> List.filter (\p -> isPost p && pathPredicate p)
-
-        ( blogs, metas ) =
-            files
-                |> List.partition (\s -> String.endsWith "/post.md" s)
-
-        href =
-            String.dropLeft (String.length blogPath)
-                << String.dropRight (String.length "/post.md")
-    in
-    if List.length blogs == List.length metas then
-        httpGets
-            { urls = List.map (\s -> contentBaseUrl ++ "/" ++ s) metas
-            , toMesage =
-                \result ->
-                    case result of
-                        Ok jsonStrings ->
-                            GotBlogPosts
-                                (Ok
-                                    (List.map2
-                                        (\url json ->
-                                            { meta = decodeBlogMeta json
-                                            , url = contentBaseUrl ++ "/" ++ url
-                                            , href = href url
-                                            }
-                                        )
-                                        blogs
-                                        jsonStrings
-                                        |> List.map
-                                            (\post ->
-                                                ( post.href, post )
-                                            )
-                                        |> Dict.fromList
-                                    )
-                                )
-
-                        Err error ->
-                            GotBlogPosts (Err error)
-            }
-
-    else
-        Cmd.none
 
 
 viewPage : Model -> Html Msg -> Html Msg
@@ -401,7 +209,7 @@ viewNavBar currentPage =
     nav [ class "navbar" ]
         [ ul [ class "navbar-items" ]
             [ viewNavBarItem currentPage Home "Home" "/"
-            , viewNavBarItem currentPage Blogs "Blog" "/blogs"
+            , viewNavBarItem currentPage Blogs "Blog" "/blog"
             , viewNavBarItem currentPage Projects "Projects" "/projects"
             ]
         ]
@@ -475,3 +283,25 @@ viewContent model =
 
         Blog post ->
             viewBlog model post
+
+
+init : Parameters -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init params url key =
+    let
+        trie =
+            StringTrie.fromList (List.map (\s -> ( s, () )) params.content)
+
+        initialPage =
+            fromUrl url
+    in
+    ( { content = trie
+      , markdownContent = ""
+      , baseContentUrl = params.baseContentUrl
+      , status = Loading
+      , currentPage = initialPage
+      , blogPosts = Dict.empty
+      , key = key
+      , url = url
+      }
+    , fetchBlogPosts params.baseContentUrl trie
+    )
