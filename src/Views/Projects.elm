@@ -10,5 +10,9 @@ import Time exposing (Month(..))
 viewProjects : Model -> Html Msg
 viewProjects _ =
     div [ class "content-display" ]
-        [ p [] [ text "This section will contain my projects." ]
+        [ p []
+            [ text """test
+            project page
+            """
+            ]
         ]
