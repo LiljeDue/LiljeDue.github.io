@@ -1,29 +1,26 @@
 port module Main exposing (main)
 
+import Blog exposing (..)
 import Browser
 import Browser.Navigation as Nav
-import Date exposing (Date)
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
 import Http
-import Json.Decode as Decode exposing (Decoder)
-import Markdown exposing (toHtml)
+import Model exposing (..)
 import StringTrie exposing (Trie)
-import Task
 import Time exposing (Month(..))
 import Url
-import Url.Parser as Parser exposing ((</>), Parser)
-import Model exposing (..)
-import Blog exposing (..)
+import Views.Blog exposing (..)
+import Views.Home exposing (..)
+import Views.NavBar exposing (viewNavBar)
+import Views.NotFound exposing (viewNotFound)
+import Views.Projects exposing (viewProjects)
 
 
 port renderMathJax : () -> Cmd msg
 
 
-
--- Handle the HTTP response for blog posts
 handleBlogPostsResponse : String -> List String -> Result Http.Error (List String) -> Msg
 handleBlogPostsResponse contentBaseUrl markdownFiles result =
     result
@@ -36,13 +33,11 @@ fetchBlogPosts contentBaseUrl trie =
     case blogPostFiles trie of
         ValidBlogPosts posts ->
             fetchBlogMetadata contentBaseUrl posts
-        
+
         MismatchedBlogPosts ->
             Cmd.none
 
 
-
--- Fetch metadata for all blog posts
 fetchBlogMetadata : String -> { markdownFiles : List String, metaFiles : List String } -> Cmd Msg
 fetchBlogMetadata contentBaseUrl { markdownFiles, metaFiles } =
     httpGets
@@ -63,6 +58,21 @@ main =
         }
 
 
+loadBlogPost : String -> Model -> ( Model, Cmd Msg )
+loadBlogPost href model =
+    case Dict.get href model.blogPosts of
+        Just post ->
+            ( { model | status = Loading }
+            , Http.get
+                { url = post.url
+                , expect = Http.expectString GotMarkdown
+                }
+            )
+
+        Nothing ->
+            ( model, Cmd.none )
+
+
 urlChanged : Model -> Url.Url -> ( Model, Cmd Msg )
 urlChanged model url =
     let
@@ -74,17 +84,7 @@ urlChanged model url =
     in
     case newPage of
         Blog href ->
-            case Dict.get href model.blogPosts of
-                Just post ->
-                    ( { newModel | status = Loading }
-                    , Http.get
-                        { url = post.url
-                        , expect = Http.expectString GotMarkdown
-                        }
-                    )
-
-                Nothing ->
-                    ( newModel, Cmd.none )
+            loadBlogPost href newModel
 
         _ ->
             ( newModel, Cmd.none )
@@ -106,28 +106,60 @@ navigateTo model page =
 
                 Blog post ->
                     "/blog/" ++ post
+
+                NotFound ->
+                    "/not-found"
     in
     ( model, Nav.pushUrl model.key url )
+
+
+linkClicked : Model -> Browser.UrlRequest -> ( Model, Cmd Msg )
+linkClicked model urlRequest =
+    case urlRequest of
+        Browser.Internal url ->
+            ( model, Nav.pushUrl model.key (Url.toString url) )
+
+        Browser.External href ->
+            ( model, Nav.load href )
+
+
+gotMarkdown : Model -> Result Http.Error String -> ( Model, Cmd Msg )
+gotMarkdown model result =
+    case result of
+        Ok content ->
+            ( { model | markdownContent = content, status = Success }, renderMathJax () )
+
+        Err error ->
+            ( { model | status = Failure error }, Cmd.none )
+
+
+gotBlogPosts : Model -> Result Http.Error (Dict String BlogPost) -> ( Model, Cmd Msg )
+gotBlogPosts model result =
+    case result of
+        Ok blogPosts ->
+            let
+                newModel =
+                    { model | blogPosts = blogPosts, status = Success }
+            in
+            case model.currentPage of
+                Blog href ->
+                    loadBlogPost href newModel
+
+                _ ->
+                    ( newModel, Cmd.none )
+
+        Err error ->
+            ( { model | status = Failure error }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotMarkdown result ->
-            case result of
-                Ok content ->
-                    ( { model | markdownContent = content, status = Success }, renderMathJax () )
-
-                Err error ->
-                    ( { model | status = Failure error }, Cmd.none )
+            gotMarkdown model result
 
         LinkClicked urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
-
-                Browser.External href ->
-                    ( model, Nav.load href )
+            linkClicked model urlRequest
 
         UrlChanged url ->
             urlChanged model url
@@ -136,48 +168,7 @@ update msg model =
             navigateTo model page
 
         GotBlogPosts result ->
-            case result of
-                Ok blogPosts ->
-                    let
-                        newModel =
-                            { model | blogPosts = blogPosts }
-
-                        ( finalModel, cmd ) =
-                            case model.currentPage of
-                                Blog href ->
-                                    case Dict.get href blogPosts of
-                                        Just post ->
-                                            ( { newModel | status = Loading }
-                                            , Http.get
-                                                { url = post.url
-                                                , expect = Http.expectString GotMarkdown
-                                                }
-                                            )
-
-                                        Nothing ->
-                                            ( { newModel | status = Success }, Cmd.none )
-
-                                _ ->
-                                    ( { newModel | status = Success }, Cmd.none )
-                    in
-                    ( finalModel, cmd )
-
-                Err error ->
-                    ( { model | status = Failure error }, Cmd.none )
-
-
-viewPage : Model -> Html Msg -> Html Msg
-viewPage model page =
-    case model.status of
-        Loading ->
-            div [ class "loading-display" ] [ h1 [] [ text "Loading blog post..." ] ]
-
-        Success ->
-            div [ class "content-display" ]
-                [ page ]
-
-        Failure _ ->
-            div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
+            gotBlogPosts model result
 
 
 view : Model -> Html Msg
@@ -188,85 +179,6 @@ view model =
             [ viewContent model
             ]
         ]
-
-
-viewNavBarItem : Page -> Page -> String -> String -> Html Msg
-viewNavBarItem currentPage page name href =
-    let
-        activeClass =
-            if currentPage == page then
-                "navbar-item active"
-
-            else
-                "navbar-item"
-    in
-    li [ class activeClass ]
-        [ a [ class "navbar-link", Html.Attributes.href href, onClick (NavigateTo page) ] [ text name ] ]
-
-
-viewNavBar : Page -> Html Msg
-viewNavBar currentPage =
-    nav [ class "navbar" ]
-        [ ul [ class "navbar-items" ]
-            [ viewNavBarItem currentPage Home "Home" "/"
-            , viewNavBarItem currentPage Blogs "Blog" "/blog"
-            , viewNavBarItem currentPage Projects "Projects" "/projects"
-            ]
-        ]
-
-
-viewHome : Model -> Html Msg
-viewHome _ =
-    div [ class "content-display" ]
-        [ p [] [ text "Welcome to my personal website!" ]
-        ]
-
-
-viewProjects : Model -> Html Msg
-viewProjects _ =
-    div [ class "content-display" ]
-        [ p [] [ text "This section will contain my projects." ]
-        ]
-
-
-viewBlogCard : BlogPost -> Html Msg
-viewBlogCard post =
-    div [ class "blog-card", Html.Attributes.href post.href, onClick (NavigateTo (Blog post.href)) ]
-        [ div []
-            [ h1 [] [ text post.meta.title ]
-            , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-            , br [] []
-            , p [] [ text post.meta.description ]
-            ]
-        ]
-
-
-viewBlogPosts : Model -> Html Msg
-viewBlogPosts model =
-    let
-        blogPosts =
-            Dict.values model.blogPosts
-                |> List.sortWith (\p0 p1 -> Date.compare p1.meta.date p0.meta.date)
-                |> List.map viewBlogCard
-    in
-    viewPage model (div [] blogPosts)
-
-
-viewBlog : Model -> String -> Html Msg
-viewBlog model href =
-    case Dict.get href model.blogPosts of
-        Nothing ->
-            viewPage model (div [] [ text "Blog post not found." ])
-
-        Just post ->
-            viewPage model
-                (div []
-                    [ h1 [] [ text post.meta.title ]
-                    , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-                    , br [] []
-                    , toHtml [ class "markdown-content" ] model.markdownContent
-                    ]
-                )
 
 
 viewContent : Model -> Html Msg
@@ -283,6 +195,9 @@ viewContent model =
 
         Blog post ->
             viewBlog model post
+
+        NotFound ->
+            viewNotFound model
 
 
 init : Parameters -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )

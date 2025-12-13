@@ -1,27 +1,32 @@
-module Model exposing (..)
+module Model exposing
+    ( Model
+    , Msg(..)
+    , Page(..)
+    , Parameters
+    , Status(..)
+    , fromUrl
+    , routeParser
+    )
 
+import Blog exposing (..)
 import Browser
 import Browser.Navigation as Nav
-import Date exposing (Date)
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
 import Http
-import Json.Decode as Decode exposing (Decoder)
-import Markdown exposing (toHtml)
 import StringTrie exposing (Trie)
-import Task
 import Time exposing (Month(..))
 import Url
 import Url.Parser as Parser exposing ((</>), Parser)
-import Blog exposing (..)
+
 
 type Page
     = Home
     | Blogs
     | Projects
     | Blog String
+    | NotFound
+
 
 type alias Parameters =
     { baseContentUrl : String
@@ -40,10 +45,12 @@ type alias Model =
     , url : Url.Url
     }
 
+
 type Status
     = Loading
     | Success
     | Failure Http.Error
+
 
 type Msg
     = GotMarkdown (Result Http.Error String)
@@ -51,7 +58,6 @@ type Msg
     | NavigateTo Page
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-
 
 
 routeParser : Parser (Page -> a) a
@@ -72,5 +78,4 @@ fromUrl url =
             page
 
         Nothing ->
-            Home
-
+            NotFound

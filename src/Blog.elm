@@ -1,20 +1,22 @@
-module Blog exposing (..)
+module Blog exposing
+    ( BlogMeta
+    , BlogPost
+    , BlogPostFiles(..)
+    , blogPostFiles
+    , buildBlogPostDict
+    , buildContentUrl
+    , createBlogPost
+    , httpGets
+    )
 
-import Browser
-import Browser.Navigation as Nav
 import Date exposing (Date)
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder)
-import Markdown exposing (toHtml)
 import StringTrie exposing (Trie)
 import Task
 import Time exposing (Month(..))
-import Url
-import Url.Parser as Parser exposing ((</>), Parser)
 
 
 type alias BlogMeta =
@@ -24,29 +26,29 @@ type alias BlogMeta =
     , description : String
     }
 
+
 type alias BlogPost =
     { meta : BlogMeta
     , url : String
     , href : String
     }
 
-blogPostFiles : Trie () -> BlogPostFiles 
-blogPostFiles trie =
-    let
-        blogFiles =
-            extractBlogFiles trie
-            
-    in
-      partitionBlogFiles blogFiles
 
--- Types for better clarity
 type BlogPostFiles
     = ValidBlogPosts { markdownFiles : List String, metaFiles : List String }
     | MismatchedBlogPosts
 
 
--- Constants
-blogPath :  String
+blogPostFiles : Trie () -> BlogPostFiles
+blogPostFiles trie =
+    let
+        blogFiles =
+            extractBlogFiles trie
+    in
+    partitionBlogFiles blogFiles
+
+
+blogPath : String
 blogPath =
     "content/blog/"
 
@@ -61,7 +63,6 @@ postJsonSuffix =
     "/post.json"
 
 
--- Extract all blog files from the trie
 extractBlogFiles : Trie () -> List String
 extractBlogFiles trie =
     StringTrie.expand blogPath trie
@@ -69,19 +70,17 @@ extractBlogFiles trie =
         |> List.filter isBlogPostFile
 
 
--- Check if a file is a blog post (markdown or json)
 isBlogPostFile : String -> Bool
 isBlogPostFile path =
     isDirectBlogPost path && isBlogPost path
 
 
--- Check if the file is directly in a blog post directory (not nested)
 isDirectBlogPost : String -> Bool
 isDirectBlogPost path =
     let
         relativePath =
             String.dropLeft (String.length blogPath) path
-        
+
         backslashCount =
             relativePath
                 |> String.filter (\c -> c == '\\')
@@ -90,14 +89,12 @@ isDirectBlogPost path =
     backslashCount /= 1
 
 
--- Check if the file is either post.md or post.json
 isBlogPost : String -> Bool
 isBlogPost path =
     String.endsWith postMarkdownSuffix path
         || String.endsWith postJsonSuffix path
 
 
--- Partition files into markdown and meta files, validating counts
 partitionBlogFiles : List String -> BlogPostFiles
 partitionBlogFiles files =
     let
@@ -109,6 +106,7 @@ partitionBlogFiles files =
             { markdownFiles = markdownFiles
             , metaFiles = metaFiles
             }
+
     else
         MismatchedBlogPosts
 
@@ -124,7 +122,7 @@ httpGets request =
                             Ok body
 
                         _ ->
-                            Err (Http.BadBody "Failed to get meta file")
+                            Err (Http.BadBody "Failed to get meta file.")
                 )
     in
     request.urls
@@ -142,21 +140,17 @@ httpGets request =
         |> Task.sequence
         |> Task.attempt request.toMesage
 
--- Build full URL for content
+
 buildContentUrl : String -> String -> String
 buildContentUrl baseUrl path =
     baseUrl ++ "/" ++ path
 
 
-
-
--- Build a dictionary of blog posts from markdown files and JSON metadata
-buildBlogPostDict :  String -> List String -> List String -> Dict String BlogPost
+buildBlogPostDict : String -> List String -> List String -> Dict String BlogPost
 buildBlogPostDict contentBaseUrl markdownFiles jsonStrings =
     List.map2 (createBlogPost contentBaseUrl) markdownFiles jsonStrings
         |> List.map (\post -> ( post.href, post ))
         |> Dict.fromList
-
 
 
 decodeDate : Decoder Date
@@ -172,6 +166,7 @@ decodeDate =
                         Decode.fail "Invalid date format"
             )
 
+
 blogMetaDecoder : Decoder BlogMeta
 blogMetaDecoder =
     Decode.map4 BlogMeta
@@ -180,9 +175,11 @@ blogMetaDecoder =
         (Decode.field "author" Decode.string)
         (Decode.field "description" Decode.string)
 
+
 parseBlogMeta : String -> Result Decode.Error BlogMeta
 parseBlogMeta jsonString =
     Decode.decodeString blogMetaDecoder jsonString
+
 
 decodeBlogMeta : String -> BlogMeta
 decodeBlogMeta jsonString =
@@ -205,6 +202,7 @@ createBlogPost contentBaseUrl markdownPath json =
     , url = buildContentUrl contentBaseUrl markdownPath
     , href = extractBlogHref markdownPath
     }
+
 
 extractBlogHref : String -> String
 extractBlogHref path =
