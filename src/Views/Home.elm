@@ -27,15 +27,15 @@ viewHome _ =
     div [ class "content-display" ]
         [ h1 [] [ text "Due's Website" ]
         , p []
-            [ text "I am William Henrich Due, and I am a PhD student in the "
+            [ text "I am William Henrich Due, a PhD student in the "
             , pltc
             , text " section at "
             , diku
-            , text " here my advisor is "
+            , text ", supervised by "
             , troels
             , text ". "
             , text "My research interests are in data-parallel programming "
-            , text " and high-performance computing."
+            , text "and high-performance computing."
             ]
         , div [ class "links-section" ]
             [ div
