@@ -15,7 +15,7 @@
     <script>
         // Use local URL when debugging (localhost), otherwise use GitHub URL
         var baseContentUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? "http://" + window.location.hostname + ":8000" // e.g., http://localhost:8000
+            ? "http://localhost:8000"
             : "https://raw.githubusercontent.com/WilliamDue/WilliamDue.github.io/refs/heads/main/content";
         
         console.log("Base Content URL:", baseContentUrl);
@@ -28,7 +28,7 @@
             }
         });
         
-        app.ports. renderMathJax.subscribe(function() {
+        app.ports.renderMathJax.subscribe(function() {
             // Wait a tiny bit to ensure the DOM is updated
             setTimeout(function() {
                 if (typeof MathJax === 'undefined') {
@@ -38,7 +38,7 @@
                 
                 if (MathJax.version && parseInt(MathJax.version.split('.')[0]) >= 3) {
                     var elements = document.getElementsByClassName('markdown-content');
-                    MathJax. typeset(elements);
+                    MathJax.typeset(elements);
                 } else {
                     console.error('Unsupported MathJax version. Please use MathJax v3.');
                 }
