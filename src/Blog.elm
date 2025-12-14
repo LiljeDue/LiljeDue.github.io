@@ -50,7 +50,7 @@ blogPostFiles trie =
 
 blogPath : String
 blogPath =
-    "content/blog/"
+    "blog/"
 
 
 postMarkdownSuffix : String
