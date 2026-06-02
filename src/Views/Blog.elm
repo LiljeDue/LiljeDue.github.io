@@ -24,12 +24,42 @@ viewPage model page =
         Failure _ ->
             div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
 
+
 normalizeMarkdown : String -> String
 normalizeMarkdown markdown =
-    markdown
-        |> String.split "\n\n"
-        |> List.map (String.lines >> String.join " ")
-        |> String.join "\n\n"
+    let
+        fencePattern =
+            Regex.fromString "```[\\s\\S]*?```|\\$\\$[\\s\\S]*?\\$\\$"
+                |> Maybe.withDefault Regex.never
+
+        normalizeParagraphs text =
+            text
+                |> String.split "\n\n"
+                |> List.map (String.lines >> String.join " ")
+                |> String.join "\n\n"
+
+        matches =
+            Regex.find fencePattern markdown
+
+        { result, lastIndex } =
+            List.foldl
+                (\match acc ->
+                    let
+                        normalPart =
+                            String.slice acc.lastIndex match.index markdown
+                    in
+                    { result = acc.result ++ normalizeParagraphs normalPart ++ match.match
+                    , lastIndex = match.index + String.length match.match
+                    }
+                )
+                { result = "", lastIndex = 0 }
+                matches
+
+        trailing =
+            String.slice lastIndex (String.length markdown) markdown
+    in
+    result ++ normalizeParagraphs trailing
+
 
 viewBlog : Model -> String -> Html Msg
 viewBlog model href =
