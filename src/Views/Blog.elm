@@ -33,7 +33,7 @@ type Segment
 
 dropLeadingNewlines : String -> String
 dropLeadingNewlines s =
-    if String.startsWith "\n" s then
+    if String.startsWith "\n" s || String.startsWith "\r" s then
         dropLeadingNewlines (String.dropLeft 1 s)
     else
         s
