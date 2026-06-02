@@ -135,9 +135,9 @@ the parenthesis at the neighboring odd index. The stable sort here is important
 since it maintains the relative ordering of items that are equal.
 
 ```
-  [(, ), (, ), {, }, (, ), {, }] (Sorted parentheses)
-  [0, 0, 0, 0, 1, 1, 2, 2, 2, 2] (Sorted nesting depths)
-  [0, 1, 2, 9, 3, 8, 4, 5, 6, 7] (Origin indices)
+[(, ), (, ), {, }, (, ), {, }] (Sorted parentheses)
+[0, 0, 0, 0, 1, 1, 2, 2, 2, 2] (Sorted nesting depths)
+[0, 1, 2, 9, 3, 8, 4, 5, 6, 7] (Origin indices)
 ```
 
 In Futhark, we can implement this using a radix sort, and then in the end do a
