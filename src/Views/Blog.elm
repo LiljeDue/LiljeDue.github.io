@@ -29,7 +29,7 @@ normalizeMarkdown markdown =
     markdown
         |> String.split "\n\n"
         |> List.map (String.lines >> String.join " ")
-        |> String.join "\n"
+        |> String.join "\n\n"
 
 viewBlog : Model -> String -> Html Msg
 viewBlog model href =
