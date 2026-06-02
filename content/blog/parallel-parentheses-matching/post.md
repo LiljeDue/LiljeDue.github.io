@@ -64,7 +64,7 @@ def parentheses_matches [n] (str: [n]u8): bool =
     map (\c -> if c == '(' then 1 else -1)) str
     |> scan (+) 0
   let min = reduce i64.min i64.highest prefix_sum
-  in n == 0 || (prefix_sum[n - 1] = 0 && 0 <= min)
+  in n == 0 || (prefix_sum[n - 1] == 0 && 0 <= min)
 ```
 
 This code solves the problem with $O(n)$ work and $O(\log n)$ span, but it
@@ -96,7 +96,7 @@ def parentheses_matches [n] (str: [n]u8): bool =
   let (sum, min) =
     map (\c -> if c == '(' then (1, 1) else (-1, -1)) str
     |> reduce op ne
-  in sum = 0 && 0 <= min
+  in sum == 0 && 0 <= min
 ```
 
 This does solve the problem with $O(n)$ work and $O(\log n)$ span again, but you
