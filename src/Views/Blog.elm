@@ -9,7 +9,7 @@ import Html.Events exposing (onClick)
 import Markdown exposing (toHtml)
 import Model exposing (..)
 import Time exposing (Month(..))
-
+import Regex
 
 viewPage : Model -> Html Msg -> Html Msg
 viewPage model page =
