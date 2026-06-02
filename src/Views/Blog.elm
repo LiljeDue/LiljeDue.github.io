@@ -89,7 +89,7 @@ normalizeMarkdown markdown =
                     Paragraph s ->
                         s
             )
-        |> String.join "\n\n"
+        |> String.join "\n"
 
 
 viewBlog : Model -> String -> Html Msg
