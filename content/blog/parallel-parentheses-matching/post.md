@@ -23,7 +23,6 @@ opening parenthesis, you put it on top of the stack, and every time you run into
 a closing parenthesis, you pop the stack. If this is not possible, then the
 parentheses are not matching, or if the stack is not empty at the end. This can
 very easily be implemented in a language like Haskell.
-
 ```hs
 parenthesesMatches :: [Char] -> Bool
 parenthesesMatches = go []
@@ -35,7 +34,6 @@ parenthesesMatches = go []
     go ('(':ss) (')':cs) = go ss cs
     go stack (_:cs)      = undefined
 ```
-
 Now, this algorithm solves the problem with $O(n)$ work and $O(n)$ span. To
 parallelize this, we can utilize the fact that we only have a single type of
 parenthesis pair. This fact is helpful since we can instead just think about how
@@ -43,12 +41,10 @@ the size of the stack changes during evaluation. We see that the stack initially
 has a size of zero and increments on opening parentheses and decrements on
 closing parentheses. When trying to pop an element from an empty stack, the
 parentheses do not match, or the stack is not zero at the end.
-
 ```
    [(, ), (, (, (, ), (, ), ), )] = "()((()()))"
 [0, 1, 0, 1, 2, 3, 2, 3, 2, 1, 0]
 ```
-
 This is a good insight because it allows us to express the problem in a
 data-parallel manner in Futhark. The parentheses can each be mapped in parallel
 to either 1 or -1. This map can be fused into a parallel prefix sum to determine
@@ -57,7 +53,6 @@ know that there are at least the correct number of parentheses. But we also have
 to compute a reduction of the prefix sum to check if any of the values are
 negative, which would mean the scan has gone negative, and therefore the
 parentheses do not match.
-
 ```
 def parentheses_matches [n] (str: [n]u8): bool =
   let prefix_sum =
@@ -66,7 +61,6 @@ def parentheses_matches [n] (str: [n]u8): bool =
   let min = reduce i64.min i64.highest prefix_sum
   in n == 0 || (prefix_sum[n - 1] = 0 && 0 <= min)
 ```
-
 This code solves the problem with $O(n)$ work and $O(\log n)$ span, but it
 produces two kernels using the CUDA backend. This leads to approximately $17n$
 bytes being read or written, so it would be nice if we could express it as a
@@ -85,7 +79,6 @@ to perform a reduce, but when implementing it, we have to account for the fact
 that a signed 64-bit integer does not have such a value. The closest is the
 largest signed 64-bit value, but it would cause overflow. Therefore, we modify
 the operator to account for this problem to get the following algorithm.
-
 ```
 def op (v0: i64, m0: i64) (v1: i64, m1: i64): (i64, i64) =
   (v0 + v1, if m1 == i64.highest then m0 else i64.min m0 (v0 + m1))
@@ -98,8 +91,6 @@ def parentheses_matches [n] (str: [n]u8): bool =
     |> reduce op ne
   in sum = 0 && 0 <= min
 ```
-
-
 This does solve the problem with $O(n)$ work and $O(\log n)$ span again, but you
 only perform approximately $n$ byte reads. Using this approach, you sadly do not
 know which parentheses pair up together. So, in the case where you have multiple
@@ -113,37 +104,30 @@ parenthesis and then using a stable sorting algorithm to pair them up. This can
 again be thought of as maintaining the stack size, since the stack size is
 related to the nesting depth of each parenthesis by subtracting one from the
 stack size at an opening parenthesis.
-
 ```
    [(, ), (, {, (, ), {, }, }, )] = "()({(){}})"
 [0, 1, 0, 1, 2, 3, 2, 3, 2, 1, 0] (Stack size)
    [0, 0, 0, 1, 2, 2, 2, 2, 1, 0] (Nesting depth)
 ```
-
 From this observation, we can clearly construct a function that computes the
 nesting depth of every pair.
-
 ```
 def nesting_depths [n] (str: [n]u8): bool =
   map (\c -> if c == '(' then 1 else -1)) str
   |> scan (+) 0
   |> map2 (\c i -> if c == '(' then i - 1 else i) str
 ```
-
 Now, if we pair each parenthesis with its nesting depth and sort them by their
 nesting depth, we can then check if all parentheses on even indices match with
 the parenthesis at the neighboring odd index. The stable sort here is important
 since it maintains the relative ordering of items that are equal.
-
 ```
   [(, ), (, ), {, }, (, ), {, }] (Sorted parentheses)
   [0, 0, 0, 0, 1, 1, 2, 2, 2, 2] (Sorted nesting depths)
   [0, 1, 2, 9, 3, 8, 4, 5, 6, 7] (Origin indices)
 ```
-
 In Futhark, we can implement this using a radix sort, and then in the end do a
 simple map-reduce to determine if the parentheses pair up correctly.
-
 ```
 def is_match (c: u8) (c': u8): bool =
   (c == '(' && c' == ')') ||
@@ -156,7 +140,6 @@ def parentheses_matches [n] (str: [n]u8): bool =
      |> map (\i -> 2 * i + 1 < n && is_match sorted[2 * i] sorted[2 * i + 1])
      |> reduce (&&) true
 ```
-
 This solves the problem in $O(n)$ work with $O(\log n)$ span. For me, this is an
 unsatisfying solution, since radix sort is quite an expensive function and
 performs quite a few read and write operations. Luckily, this is not the only
@@ -175,7 +158,6 @@ operation using the minimum operation on an array of values. Here, you must
 store the whole tree, which will later be used for querying. First, we compute
 this tree from the nesting depths with some padding, where $m$ is the largest
 number.
-
 ```
                          0
             ┌────────────┴────────────┐
@@ -204,7 +186,6 @@ is as an array using a same approach as a
 [eytzinger](https://futhark-lang.org/examples/binary-search.html) layout for
 binary search. Where by performing arithmetic operations on the index of nodes
 we can traverse to the parent and children using arithmetic operations.
-
 ```
 def go_parent (i: i64) : i64 = (i - 1) / 2i64
 
@@ -212,7 +193,6 @@ def go_left (i: i64) : bool = 2 * i
 
 def go_right (i: i64) : bool = 2 * i + 1
 ```
-
 To construct the tree takes $O(n)$ work and has $O(\log n)$ span, while
 searching for a previous or smaller element takes $O(\log n)$ work and $O(\log
 n)$ span. So, to solve the previous or smaller element problem for every
@@ -226,7 +206,6 @@ start by computing the nesting depth of every parenthesis, then we just have to
 solve the previous or smaller element problem for every element, like we did
 before with sorting. We solve this by constructing the tree and then mapping the
 lookup procedure over all closing parentheses.
-
 ```
 import "lib/github.com/diku-dk/containers/array/reduction_tree"
 
@@ -242,7 +221,6 @@ def parentheses_matches [n] (str: [n]u8): bool =
          in j != -1 && str[j] == ')'))
      |> reduce (&&) true
 ```
-
 The insight that we get from solving the parentheses matching problem is that
 there are ways of parallelizing problems that are typically solved using a
 stack. This technique is used in the Alpacc parser generator to perform
