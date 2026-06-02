@@ -33,10 +33,10 @@ normalizeMarkdown markdown =
                 |> Maybe.withDefault Regex.never
 
         normalizeParagraphs text =
-            text
-                |> String.split "\n\n"
-                |> List.map (String.lines >> String.join " ")
-                |> String.join "\n"
+          text
+              |> String.split "\n\n"
+              |> List.map (String.lines >> String.join " ")
+              |> String.join "\n\n"
 
         matches =
             Regex.find fencePattern markdown
