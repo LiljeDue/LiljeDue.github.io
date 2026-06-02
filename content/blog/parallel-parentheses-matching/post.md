@@ -8,7 +8,7 @@ paper, I looked into what other problems can be expressed as a
 asserting that a string of parentheses is balanced can be done in this manner,
 it has it downsides (which we will get to), but this is not the parallel
 algorithm for parentheses matching. Therefore, I decided to write a short blog
-about these methods. Now, to start off, let us define what the parentheses
+post about these methods. Now, to start off, let us define what the parentheses
 matching problem is.
 
 To start off, we will discuss a smaller instance of the problem, which is given
