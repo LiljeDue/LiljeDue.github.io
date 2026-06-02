@@ -196,15 +196,15 @@ number.
 
 Now to figure out what is the previous or smaller element we traverse up the
 tree from a leaf node until the edge taken to the parent is an edge from the a
-right child. Then we continue traversing till the parent is smaller than the
-value of the leaf we started at. Now we are at a node where the parent is
-smaller than the value of the leaf and traverse to the sibling to this node.
-From this node we continuely go down to the right children unless it is not
-smaller or equal to the original leaf value. When we reach a leaf we have the
-index of the previous or smaller element. An implementation of this algorithm
-can be found in the [containers](https://github.com/diku-dk/containers) library
-under the name `transparent_reduction_tree.fut`. The way this is representated
-is as an array using a same approach as a
+right child. And till the parent is smaller than or equal to the value of the
+leaf we started at. Now we are at a node where the parent is smaller than the
+value of the leaf and traverse to the sibling to this node. From this node we
+continuely go down to the right children unless it is not smaller or equal to
+the original leaf value. When we reach a leaf we have the index of the previous
+or smaller element. An implementation of this algorithm can be found in the
+[containers](https://github.com/diku-dk/containers) library under the name
+`transparent_reduction_tree.fut`. The way this is representated is as an array
+using a same approach as a
 [eytzinger](https://futhark-lang.org/examples/binary-search.html) layout for
 binary search. Where by performing arithmetic operations on the index of nodes
 we can traverse to the parent and children using arithmetic operations.
