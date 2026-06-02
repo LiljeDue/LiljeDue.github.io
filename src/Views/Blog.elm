@@ -8,8 +8,9 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Markdown exposing (toHtml)
 import Model exposing (..)
+import Parser exposing (Parser, Step(..), (|.), (|=))
 import Time exposing (Month(..))
-import Regex
+
 
 viewPage : Model -> Html Msg -> Html Msg
 viewPage model page =
@@ -25,40 +26,101 @@ viewPage model page =
             div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
 
 
+type Segment
+    = Protected String
+    | Paragraph String
+
+
+fenceBlock : Parser Segment
+fenceBlock =
+    Parser.succeed (\inner -> Protected ("```" ++ inner ++ "```"))
+        |. Parser.token "```"
+        |= Parser.getChompedString (Parser.chompUntil "```")
+        |. Parser.token "```"
+
+
+mathBlock : Parser Segment
+mathBlock =
+    Parser.succeed (\inner -> Protected ("$$" ++ inner ++ "$$"))
+        |. Parser.token "$$"
+        |= Parser.getChompedString (Parser.chompUntil "$$")
+        |. Parser.token "$$"
+
+
+-- Parses a single paragraph: consumes chars one at a time, stopping at
+-- \n\n, a protected block delimiter, or end of input.
+-- Single \n within the paragraph are collapsed to spaces.
+paragraphContentHelp : List String -> Parser (Step (List String) (List String))
+paragraphContentHelp acc =
+    Parser.oneOf
+        [ Parser.end
+            |> Parser.map (\_ -> Done acc)
+        , Parser.backtrackable (Parser.token "\n\n")
+            |> Parser.map (\_ -> Done acc)
+        , Parser.backtrackable (Parser.token "```")
+            |> Parser.map (\_ -> Done acc)
+        , Parser.backtrackable (Parser.token "$$")
+            |> Parser.map (\_ -> Done acc)
+        , Parser.getChompedString (Parser.chompIf (\_ -> True))
+            |> Parser.map (\c -> Loop (c :: acc))
+        ]
+
+
+paragraphParser : Parser Segment
+paragraphParser =
+    Parser.loop [] paragraphContentHelp
+        |> Parser.map
+            (\chars ->
+                chars
+                    |> List.reverse
+                    |> String.concat
+                    |> String.lines
+                    |> String.join " "
+                    |> Paragraph
+            )
+
+
+segmentHelp : List Segment -> Parser (Step (List Segment) (List Segment))
+segmentHelp acc =
+    Parser.oneOf
+        [ Parser.end
+            |> Parser.map (\_ -> Done (List.reverse acc))
+        , Parser.backtrackable fenceBlock
+            |> Parser.map (\seg -> Loop (seg :: acc))
+        , Parser.backtrackable mathBlock
+            |> Parser.map (\seg -> Loop (seg :: acc))
+        -- consume \n\n separators without adding a segment
+        , Parser.backtrackable (Parser.token "\n\n")
+            |> Parser.map (\_ -> Loop acc)
+        , paragraphParser
+            |> Parser.map
+                (\seg ->
+                    case seg of
+                        Paragraph "" -> Loop acc
+                        _            -> Loop (seg :: acc)
+                )
+        ]
+
+
+segmentParser : Parser (List Segment)
+segmentParser =
+    Parser.loop [] segmentHelp
+
+
 normalizeMarkdown : String -> String
 normalizeMarkdown markdown =
-    let
-        fencePattern =
-            Regex.fromString "```[\\s\\S]*?```|\\$\\$[\\s\\S]*?\\$\\$"
-                |> Maybe.withDefault Regex.never
+    Parser.run segmentParser markdown
+        |> Result.withDefault [ Paragraph markdown ]
+        |> List.map
+            (\seg ->
+                case seg of
+                    Protected s ->
+                        s
 
-        normalizeParagraphs text =
-          text
-              |> String.split "\n\n"
-              |> List.map (String.lines >> String.join " ")
-              |> String.join "\n\n"
-
-        matches =
-            Regex.find fencePattern markdown
-
-        { result, lastIndex } =
-            List.foldl
-                (\match acc ->
-                    let
-                        normalPart =
-                            String.slice acc.lastIndex match.index markdown
-                    in
-                    { result = acc.result ++ normalizeParagraphs normalPart ++ match.match
-                    , lastIndex = match.index + String.length match.match
-                    }
-                )
-                { result = "", lastIndex = 0 }
-                matches
-
-        trailing =
-            String.slice lastIndex (String.length markdown) markdown
-    in
-    result ++ normalizeParagraphs trailing
+                    Paragraph s ->
+                        s
+            )
+        |> String.join "\n\n"
 
 
 viewBlog : Model -> String -> Html Msg
