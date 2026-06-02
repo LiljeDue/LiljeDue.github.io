@@ -150,9 +150,14 @@ def is_match (c: u8) (c': u8): bool =
 
 def parentheses_matches [n] (str: [n]u8): bool =
   let depths = nesting_depths str
-  let sorted = zip depths str |> radix_sort_by_key (.0) |> map (.1)
+  let sorted =
+    zip depths str
+    |> radix_sort_by_key (.0)
+    |> map (.1)
   in iota (n / 2)
-     |> map (\i -> 2 * i + 1 < n && is_match sorted[2 * i] sorted[2 * i + 1])
+     |> map (\i ->
+          2 * i + 1 < n &&
+          is_match sorted[2 * i] sorted[2 * i + 1])
      |> reduce (&&) true
 ```
 
@@ -177,14 +182,14 @@ number.
 
 ```
                          0
-            ┌────────────┴────────────┐
-            0                         0
+            ┌────────────┴───────────┐
+            0                        0
       ┌─────┴─────┐            ┌─────┴─────┐
       0           2            0           m
    ┌──┴──┐     ┌──┴──┐      ┌──┴──┐     ┌──┴──┐
    0     0     2     2      0     m     m     m
  ┌─┴─┐ ┌─┴─┐ ┌─┴─┐ ┌─┴─┐  ┌─┴─┐ ┌─┴─┐ ┌─┴─┐ ┌─┴─┐
-[0,  0,0,  1,2,  2,2,  2, 1,  0,m,  m,m,  m,m,  m] (Nesting depths with padding) 
+[0,  0,0,  1,2,  2,2,  2, 1,  0,m,  m,m,  m,m,  m]
 [(,  ),(,  {,(,  ),{,  }, },  )]
 [0,  1,2,  3,4,  5,6,  7, 8,  9] (Indices)
 ```
