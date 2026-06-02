@@ -24,7 +24,7 @@ a closing parenthesis, you pop the stack. If this is not possible, then the
 parentheses are not matching, or if the stack is not empty at the end. This can
 very easily be implemented in a language like Haskell.
 
-```hs
+```
 parenthesesMatches :: [Char] -> Bool
 parenthesesMatches = go []
   where

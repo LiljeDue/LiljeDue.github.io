@@ -47,58 +47,27 @@ mathBlock =
         |. Parser.token "$$"
 
 
--- Parses a single paragraph: consumes chars one at a time, stopping at
--- \n\n, a protected block delimiter, or end of input.
--- Single \n within the paragraph are collapsed to spaces.
-paragraphContentHelp : List String -> Parser (Step (List String) (List String))
-paragraphContentHelp acc =
+paragraph : Parser Segment
+paragraph =
+    Parser.getChompedString (Parser.chompUntilEndOr "\n\n")
+        |> Parser.map (\s -> Paragraph (s |> String.lines |> String.join " "))
+
+
+segment : Parser Segment
+segment =
     Parser.oneOf
-        [ Parser.end
-            |> Parser.map (\_ -> Done acc)
-        , Parser.backtrackable (Parser.token "\n\n")
-            |> Parser.map (\_ -> Done acc)
-        , Parser.backtrackable (Parser.token "```")
-            |> Parser.map (\_ -> Done acc)
-        , Parser.backtrackable (Parser.token "$$")
-            |> Parser.map (\_ -> Done acc)
-        , Parser.getChompedString (Parser.chompIf (\_ -> True))
-            |> Parser.map (\c -> Loop (c :: acc))
+        [ Parser.backtrackable fenceBlock
+        , Parser.backtrackable mathBlock
+        , paragraph
         ]
-
-
-paragraphParser : Parser Segment
-paragraphParser =
-    Parser.loop [] paragraphContentHelp
-        |> Parser.map
-            (\chars ->
-                chars
-                    |> List.reverse
-                    |> String.concat
-                    |> String.lines
-                    |> String.join " "
-                    |> Paragraph
-            )
 
 
 segmentHelp : List Segment -> Parser (Step (List Segment) (List Segment))
 segmentHelp acc =
     Parser.oneOf
-        [ Parser.end
-            |> Parser.map (\_ -> Done (List.reverse acc))
-        , Parser.backtrackable fenceBlock
-            |> Parser.map (\seg -> Loop (seg :: acc))
-        , Parser.backtrackable mathBlock
-            |> Parser.map (\seg -> Loop (seg :: acc))
-        -- consume \n\n separators without adding a segment
-        , Parser.backtrackable (Parser.token "\n\n")
-            |> Parser.map (\_ -> Loop acc)
-        , paragraphParser
-            |> Parser.map
-                (\seg ->
-                    case seg of
-                        Paragraph "" -> Loop acc
-                        _            -> Loop (seg :: acc)
-                )
+        [ Parser.end |> Parser.map (\_ -> Done (List.reverse acc))
+        , Parser.token "\n\n" |> Parser.map (\_ -> Loop acc)
+        , segment |> Parser.map (\seg -> Loop (seg :: acc))
         ]
 
 
