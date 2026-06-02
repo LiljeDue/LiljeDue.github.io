@@ -46,6 +46,9 @@ trimNewlines s =
         |> String.reverse
         |> dropLeadingNewlines
         |> String.reverse
+        |> String.split "\n"
+        |> List.map (' ':)
+        |> String.concat
 
 
 fenceBlock : Parser Segment
