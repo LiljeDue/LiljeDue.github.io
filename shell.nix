@@ -1,9 +1,8 @@
 let
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz") {};
+  pkgs = import <nixpkgs> {};
 in
 pkgs.mkShell {
   packages = (with pkgs; [
-    caddy
     elmPackages.elm
     elmPackages.elm-format
     elmPackages.elm-language-server
@@ -11,6 +10,8 @@ pkgs.mkShell {
     elmPackages.elm-review
     elmPackages.elm-test
     nodejs
+    nodePackages.serve
+    nodePackages.http-server
     shellcheck
   ]);
 
@@ -18,7 +19,6 @@ pkgs.mkShell {
     ''
     export project="$PWD"
     export build="$project/.build"
-
     export PATH="$project/bin:$PATH"
     '';
 }

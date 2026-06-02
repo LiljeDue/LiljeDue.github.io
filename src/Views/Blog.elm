@@ -103,7 +103,7 @@ viewBlog model href =
                 (div []
                     [ h1 [] [ text post.meta.title ]
                     , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
-                    , br [] []
+                    , br [ class "content-sep" ] []
                     , toHtml [ class "markdown-content" ] (normalizeMarkdown model.markdownContent)
                     ]
                 )

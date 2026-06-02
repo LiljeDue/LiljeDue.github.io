@@ -4,8 +4,8 @@ ELM_SRC = src/Main.elm
 ELM_OUT = elm.js
 CONTENT_PORT = 8000
 APP_PORT = 3000
-CONTENT_SERVER = npx http-server -p $(CONTENT_PORT) --cors -c-1 --no-clipboard content
-APP_SERVER = npx serve@latest -p $(APP_PORT) -s --no-clipboard . 
+CONTENT_SERVER = http-server -p $(CONTENT_PORT) --cors -c-1 --no-clipboard content
+APP_SERVER = serve -p $(APP_PORT) -s --no-clipboard .
 SERVER_START = @echo "Starting content server on http://localhost:$(CONTENT_PORT)"; \
 	echo "Starting main app on http://localhost:$(APP_PORT)"; \
 	$(CONTENT_SERVER) & \
