@@ -55,7 +55,7 @@ to either 1 or -1. This map can be fused into a parallel prefix sum to determine
 the stack size at each state. If the last value of the scan is zero, then we
 know that there are at least the correct number of parentheses. But we also have
 to compute a reduction of the prefix sum to check if any of the values are
-negative, which would mean the scan has gone negative, and therefore the
+negative, which would mean the stack size has gone negative, and therefore the
 parentheses do not match.
 
 ```
@@ -88,7 +88,8 @@ the operator to account for this problem to get the following algorithm.
 
 ```
 def op (v0: i64, m0: i64) (v1: i64, m1: i64): (i64, i64) =
-  (v0 + v1, if m1 == i64.highest then m0 else i64.min m0 (v0 + m1))
+  (v0 + v1,
+   if m1 == i64.highest then m0 else i64.min m0 (v0 + m1))
 
 def ne: (i64, i64) = (0, i64.highest)
 
@@ -204,7 +205,7 @@ the original leaf value. When we reach a leaf we have the index of the previous
 or smaller element. An implementation of this algorithm can be found in the
 [containers](https://github.com/diku-dk/containers) library under the name
 `transparent_reduction_tree.fut`. The way this is representated is as an array
-using a same approach as a
+using a same approach as an
 [eytzinger](https://futhark-lang.org/examples/binary-search.html) layout for
 binary search. Where by performing arithmetic operations on the index of nodes
 we can traverse to the parent and children using arithmetic operations.
