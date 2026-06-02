@@ -47,7 +47,7 @@ trimNewlines s =
         |> dropLeadingNewlines
         |> String.reverse
         |> String.split "\n"
-        |> List.map (' ':)
+        |> List.map (\line -> " " ++ line)
         |> String.concat
 
 
