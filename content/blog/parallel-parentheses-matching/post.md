@@ -242,9 +242,11 @@ def parentheses_matches [n] (str: [n]u8): bool =
   let tree = mintree.make depths
   in iota n
      |> map (\i ->
-        str[i] == '(' ||
+        str[i] == '(' || str[i] == '{' ||
         (let j = mintree.previous tree i
-         in j != -1 && str[j] == ')'))
+         in j != -1 &&
+            ((str[j] == '(' && str[i] == ')') ||
+             (str[j] == '{' && str[i] == '}'))))
      |> reduce (&&) true
 ```
 
