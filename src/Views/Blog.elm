@@ -31,27 +31,9 @@ type Segment
     | Paragraph String
 
 
-dropLeadingNewlines : String -> String
-dropLeadingNewlines s =
-    if String.startsWith "\n" s || String.startsWith "\r" s then
-        dropLeadingNewlines (String.dropLeft 1 s)
-    else
-        s
-
-
-trimNewlines : String -> String
-trimNewlines s =
-    s
-        |> dropLeadingNewlines
-        |> String.reverse
-        |> dropLeadingNewlines
-        |> String.reverse
-        |> (\line -> " " ++ line ++ " ")
-
-
 fenceBlock : Parser Segment
 fenceBlock =
-    Parser.succeed (\inner -> Protected ("```" ++ trimNewlines inner ++ "```"))
+    Parser.succeed (\inner -> Protected ("```" ++ inner ++ "```"))
         |. Parser.token "```"
         |= Parser.getChompedString (Parser.chompUntil "```")
         |. Parser.token "```"
@@ -59,7 +41,7 @@ fenceBlock =
 
 mathBlock : Parser Segment
 mathBlock =
-    Parser.succeed (\inner -> Protected ("$$" ++ trimNewlines inner ++ "$$"))
+    Parser.succeed (\inner -> Protected ("$$" ++ inner ++ "$$"))
         |. Parser.token "$$"
         |= Parser.getChompedString (Parser.chompUntil "$$")
         |. Parser.token "$$"
