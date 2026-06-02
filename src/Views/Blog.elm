@@ -46,8 +46,7 @@ trimNewlines s =
         |> String.reverse
         |> dropLeadingNewlines
         |> String.reverse
-        |> (" " (++))
-        |> ((++) " ")
+        |> (\line -> " " ++ line ++ " ")
 
 
 fenceBlock : Parser Segment
