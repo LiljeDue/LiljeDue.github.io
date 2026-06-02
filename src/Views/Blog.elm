@@ -24,6 +24,12 @@ viewPage model page =
         Failure _ ->
             div [ class "error-display" ] [ h1 [] [ text "Failed to load content. Please try again later." ] ]
 
+normalizeMarkdown : String -> String
+normalizeMarkdown markdown =
+    markdown
+        |> String.split "\n\n"
+        |> List.map (String.lines >> String.join " ")
+        |> String.join "\n\n"
 
 viewBlog : Model -> String -> Html Msg
 viewBlog model href =
@@ -37,7 +43,7 @@ viewBlog model href =
                     [ h1 [] [ text post.meta.title ]
                     , p [] [ text (Date.format "d MMMM y" post.meta.date) ]
                     , br [] []
-                    , toHtml [ class "markdown-content" ] model.markdownContent
+                    , toHtml [ class "markdown-content" ] (normalizeMarkdown model.markdownContent)
                     ]
                 )
 
