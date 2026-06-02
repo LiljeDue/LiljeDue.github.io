@@ -46,7 +46,7 @@ parentheses do not match, or the stack is not zero at the end.
 
 ```
    [(, ), (, (, (, ), (, ), ), )] = "()((()()))"
-[0, 1, 0, 1, 2, 3, 2, 3, 2, 1, 0]
+[0, 1, 0, 1, 2, 3, 2, 3, 2, 1, 0] (Stack sizes)
 ```
 
 This is a good insight because it allows us to express the problem in a
@@ -189,7 +189,7 @@ number.
    ┌──┴──┐     ┌──┴──┐      ┌──┴──┐     ┌──┴──┐
    0     0     2     2      0     m     m     m
  ┌─┴─┐ ┌─┴─┐ ┌─┴─┐ ┌─┴─┐  ┌─┴─┐ ┌─┴─┐ ┌─┴─┐ ┌─┴─┐
-[0,  0,0,  1,2,  2,2,  2, 1,  0,m,  m,m,  m,m,  m]
+[0,  0,0,  1,2,  2,2,  2, 1,  0,m,  m,m,  m,m,  m] (Depths)
 [(,  ),(,  {,(,  ),{,  }, },  )]
 [0,  1,2,  3,4,  5,6,  7, 8,  9] (Indices)
 ```
