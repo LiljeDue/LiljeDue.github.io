@@ -220,10 +220,10 @@ def go_right (i: i64) : bool = 2 * i + 1
 
 To construct the tree takes $O(n)$ work and has $O(\log n)$ span, while
 searching for a previous or smaller element takes $O(\log n)$ work and $O(\log
-n)$ span. So, to solve the previous or smaller element problem for every
-element would take $O(n \log n)$ work and $O(\log n)$ span. It is possible to do
-this work efficiently by splitting up the input array into subarrays of size $n
-/ \log n$, building the tree for each subarray, and modifying the search procedure
+n)$ span. So, to solve the previous or smaller element problem for every element
+would take $O(n \log n)$ work and $O(\log n)$ span. It is possible to do this
+work efficiently by splitting up the input array into subarrays of size $n /
+\log n$, building the tree for each subarray, and modifying the search procedure
 as in the algorithm of [Sitchinava &
 Svenning](https://dl.acm.org/doi/10.1145/3626183.3659979).
 
