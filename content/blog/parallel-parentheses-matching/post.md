@@ -223,8 +223,9 @@ searching for a previous or smaller element takes $O(\log n)$ work and $O(\log
 n)$ span. So, to solve the previous or smaller element problem for every
 element would take $O(n \log n)$ work and $O(\log n)$ span. It is possible to do
 this work efficiently by splitting up the input array into subarrays of size $n
-/ \log n$, solving them sequentially, and using the tree construction with each
-leaf being a subarray.
+/ \log n$, building the tree for each subarray, and modifying the search procedure
+as in the algorithm of [Sitchinava &
+Svenning](https://dl.acm.org/doi/10.1145/3626183.3659979).
 
 Now, how do we use this to solve the parentheses matching problem? Well, if we
 start by computing the nesting depth of every parenthesis, then we just have to
