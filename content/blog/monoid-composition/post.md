@@ -251,7 +251,7 @@ $$
 $$
 
 The resulting monoid is $\left(\left(\overline{\mathbb{Z}}^2\right)^2, \times,
-((-\infty, 0), (-\infty, 0)) \right)$ but it can be simplified to avoid nested
+((0, -\infty), (0, -\infty)) \right)$ but it can be simplified to avoid nested
 tuples and to only compute the sum once.
 
 $$
