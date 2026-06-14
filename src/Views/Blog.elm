@@ -27,13 +27,14 @@ viewPage model page =
 
 
 type Segment
-    = Protected String
+    = ProtectedMath String
+    | ProtectedCode String
     | Paragraph String
 
 
 fenceBlock : Parser Segment
 fenceBlock =
-    Parser.succeed (\inner -> Protected ("```" ++ inner ++ "```"))
+    Parser.succeed (\inner -> ProtectedCode ("```" ++ inner ++ "```"))
         |. Parser.token "```"
         |= Parser.getChompedString (Parser.chompUntil "```")
         |. Parser.token "```"
@@ -41,7 +42,7 @@ fenceBlock =
 
 mathBlock : Parser Segment
 mathBlock =
-    Parser.succeed (\inner -> Protected ("$$" ++ inner ++ "$$"))
+    Parser.succeed (\inner -> ProtectedMath ("$$" ++ inner ++ "$$"))
         |. Parser.token "$$"
         |= Parser.getChompedString (Parser.chompUntil "$$")
         |. Parser.token "$$"
@@ -83,11 +84,15 @@ normalizeMarkdown markdown =
         |> List.map
             (\seg ->
                 case seg of
-                    Protected s ->
+                    ProtectedCode s ->
                         s
 
+                    ProtectedMath s ->
+                        String.replace "\\\\" "\\\\\\\\" s
+                        |> String.replace "_" "\\_"
+
                     Paragraph s ->
-                        s
+                        String.replace "_" "\\_" s
             )
         |> String.join "\n\n"
 

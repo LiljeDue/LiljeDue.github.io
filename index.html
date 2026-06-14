@@ -5,12 +5,17 @@
     <title>Elm with HTML and LaTeX Math</title>
     <link rel="stylesheet" href="/style.css">
     <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']],
-          processEscapes: true
-        }
-      };
+        MathJax = {
+            tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            packages: {'[+]': ['ams']}
+            },
+            loader: {
+            load: ['[tex]/ams']
+            }
+        };
     </script>
     <!-- Include MathJax for LaTeX rendering -->
     <script type="text/javascript"

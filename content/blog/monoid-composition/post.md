@@ -20,7 +20,7 @@ monoid is able to compute is a sum and the minimum of the prefix sum. So this is
 a case of computing a reduction and a prefix sum in a single reduction.
 
 $$
-\max~\lbrace a_1, (a_1 + a_2), (a_1 + a_2 + a_3), \ldots, a_1 + a_2 +~ \cdots~+ a_n \rbrace
+\max~\lbrace a_1, a_1 + a_2, a_1 + a_2 + a_3, \ldots, a_1 + a_2 +~ \cdots~+ a_n \rbrace
 $$
 
 The question I had is whether this generalizes, and it generalizes to two
@@ -30,20 +30,24 @@ monoids $(\overline{\mathbb{Z}}, +, 0)$ and $(\overline{\mathbb{Z}}, \min,
 composed monoid $(\overline{\mathbb{Z}}^2, \star, (0, \infty))$. Through
 exploring this subject I realized that the key to seeing whether two monoids can be
 composed is related to whether they form a non-commutative semiring. So we need
-$(A, +, e_{+})$ and $(A, \cdot, e_{\cdot})$ to be monoids such that they form a
+$(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ to be monoids such that they form a
 non-commutative semiring, meaning we have the extra property that $\cdot$ can be
 distributed over a $+$ operation:
 
 $$
+\begin{gathered}
 a \cdot (b + c) = a \cdot b + a \cdot c \\
 (b + c) \cdot a  = b \cdot a + c \cdot a
+\end{gathered}
 $$
 
 Furthermore, we also have the annihilation property:
 
 $$
+\begin{gathered}
 a \cdot e_+ = e_+ \\
 e_+ \cdot a = e_+
+\end{gathered}
 $$
 
 We can see that the summation and minimum monoids make up a non-commutative
@@ -54,6 +58,7 @@ non-commutative semiring, we can construct a composed monoid which computes the
 first monoid followed by another monoid.
 
 ## Monoid Composition
+
 Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
 non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
 following operation.
@@ -93,19 +98,14 @@ using properties given:
 
 $$
 \begin{aligned}
-(a_1, b_1) \star \big((a_2, b_2) \star (a_3, b_3)\big) &= (a_1, b_1) \star \big( (a_2 \cdot a_3, b_2 + (a_2 \cdot b_3)) \big)
-\quad& \text{(definition of }\star\text{)} \\
-
-&= \Big(a_1 \cdot (a_2 \cdot a_3),
- b_1 + \big(a_1 \cdot (b_2 + (a_2 \cdot b_3))\big)\Big)
-\quad& \text{(definition of }\star\text{)} \\
-
-&= \Big((a_1 \cdot a_2) \cdot a_3,
- b_1 + \big((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\big)\Big) \quad & \text{(distributivity)} \\
-
-&= \Big(a_1 \cdot a_2 \cdot a_3,
- b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\Big)
-\quad& \text{(associativity of } \cdot \text{and} + \text{)}
+(a_1, b_1) \star \left((a_2, b_2) \star (a_3, b_3)\right) &= (a_1, b_1) \star \left( (a_2 \cdot a_3, b_2 + (a_2 \cdot b_3)) \right) \\
+&\phantom{{}={}} \text{(definition of }\star\text{)} \\
+&= \left(a_1 \cdot (a_2 \cdot a_3), b_1 + \left(a_1 \cdot (b_2 + (a_2 \cdot b_3))\right)\right) \\
+&\phantom{{}={}} \text{(definition of }\star\text{)} \\
+&= \left((a_1 \cdot a_2) \cdot a_3, b_1 + \left((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\right)\right) \\
+&\phantom{{}={}} \text{(distributivity)} \\
+&= \left(a_1 \cdot a_2 \cdot a_3, b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\right) \\
+&\phantom{{}={}} \text{(associativity of } \cdot \text{and} + \text{)}
 \end{aligned}
 $$
 
@@ -113,16 +113,12 @@ Lastly, we must show the right-hand side is equal to the left-handside:
 
 $$
 \begin{aligned}
-\big((a_1, b_1) \star (a_2, b_2)\big) \star (a_3, b_3) &= \big((a_1 \cdot a_2, b_1 + (a_1 \cdot b_2))\big) \star (a_3, b_3)
-\quad& \text{(definition of }\star\text{)} \\
-
-&= \Big((a_1 \cdot a_2) \cdot a_3,
- (b_1 + (a_1 \cdot b_2)) + ((a_1 \cdot a_2) \cdot b_3)\Big)
-\quad& \text{(definition of }\star\text{)} \\
-
-&= \Big(a_1 \cdot a_2 \cdot a_3,
- b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\Big)
-\quad& \text{(associativity of } \cdot \text{and} + \text{)}
+\left((a_1, b_1) \star (a_2, b_2)\right) \star (a_3, b_3) &= \left((a_1 \cdot a_2, b_1 + (a_1 \cdot b_2))\right) \star (a_3, b_3) \\
+&\phantom{{}={}} \text{(definition of }\star\text{)} \\
+&= \left((a_1 \cdot a_2) \cdot a_3, (b_1 + (a_1 \cdot b_2)) + ((a_1 \cdot a_2) \cdot b_3)\right) \\
+&\phantom{{}={}} \text{(definition of }\star\text{)} \\
+&= \left(a_1 \cdot a_2 \cdot a_3, b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\right) \\
+&\phantom{{}={}} \text{(associativity of } \cdot \text{and} + \text{)}
 \end{aligned}
 $$
 
@@ -169,6 +165,7 @@ Now it will be shown that it is possible to construct a reduction of a suffix
 sum given a non-commutative semiring. I will do this for completeness' sake.
 
 ## Reverse Monoid Composition
+
 Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
 non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
 following operation.
@@ -208,11 +205,12 @@ using properties given:
 
 $$
 \begin{aligned}
-(a_1, b_1) \diamond \big((a_2, b_2) \diamond (a_3, b_3)\big) &= (a_1, b_1) \diamond \big( (a_2 \cdot a_3, b_3 + (b_2 \cdot a_3)) \big) \quad& \text{(definition of }\diamond\text{)} \\
-
-&= \Big(a_1 \cdot (a_2 \cdot a_3), (b_3 + (b_2 \cdot a_3)) + (b_1 \cdot (a_2 \cdot a_3))\Big) \quad& \text{(definition of }\diamond\text{)} \\
-
-&= \Big(a_1 \cdot a_2 \cdot a_3, b_3 + (b_2 \cdot a_3) + (b_1 \cdot a_2 \cdot a_3)\Big) \quad& \text{(associativity of } \cdot \text{ and } +\text{)}
+(a_1, b_1) \diamond \left((a_2, b_2) \diamond (a_3, b_3)\right) &= (a_1, b_1) \diamond \left( (a_2 \cdot a_3, b_3 + (b_2 \cdot a_3)) \right) \\
+&\phantom{{}={}} \text{(definition of }\diamond\text{)} \\
+&= \left(a_1 \cdot (a_2 \cdot a_3), (b_3 + (b_2 \cdot a_3)) + (b_1 \cdot (a_2 \cdot a_3))\right) \\
+&\phantom{{}={}} \text{(definition of }\diamond\text{)} \\
+&= \left(a_1 \cdot a_2 \cdot a_3, b_3 + (b_2 \cdot a_3) + (b_1 \cdot a_2 \cdot a_3)\right) \\
+&\phantom{{}={}} \text{(associativity of } \cdot \text{ and } +\text{)}
 \end{aligned}
 $$
 
@@ -220,13 +218,14 @@ Lastly, we must show the right-hand side is equal to the left-handside:
 
 $$
 \begin{aligned}
-\big((a_1, b_1) \diamond (a_2, b_2)\big) \diamond (a_3, b_3) &= \big((a_1 \cdot a_2, b_2 + (b_1 \cdot a_2))\big) \diamond (a_3, b_3) \quad& \text{(definition of }\diamond\text{)} \\
-
-&= \Big((a_1 \cdot a_2) \cdot a_3, b_3 + \big((b_2 + (b_1 \cdot a_2)) \cdot a_3\big)\Big) \quad& \text{(definition of }\diamond\text{)} \\
-
-&= \Big((a_1 \cdot a_2) \cdot a_3, b_3 + (b_2 \cdot a_3) + ((b_1 \cdot a_2) \cdot a_3)\Big) \quad& \text{(distributivity)} \\
-
-&= \Big(a_1 \cdot a_2 \cdot a_3, b_3 + (b_2 \cdot a_3) + (b_1 \cdot a_2 \cdot a_3)\Big) \quad& \text{(associativity of } \cdot \text{ and } +\text{)}
+\left((a_1, b_1) \diamond (a_2, b_2)\right) \diamond (a_3, b_3) &= \left((a_1 \cdot a_2, b_2 + (b_1 \cdot a_2))\right) \diamond (a_3, b_3) \\
+&\phantom{{}={}} \text{(definition of }\diamond\text{)} \\
+&= \left((a_1 \cdot a_2) \cdot a_3, b_3 + \left((b_2 + (b_1 \cdot a_2)) \cdot a_3\right)\right) \\
+&\phantom{{}={}} \text{(definition of }\diamond\text{)} \\
+&= \left((a_1 \cdot a_2) \cdot a_3, b_3 + (b_2 \cdot a_3) + ((b_1 \cdot a_2) \cdot a_3)\right) \\
+&\phantom{{}={}} \text{(distributivity)} \\
+&= \left(a_1 \cdot a_2 \cdot a_3, b_3 + (b_2 \cdot a_3) + (b_1 \cdot a_2 \cdot a_3)\right) \\
+&\phantom{{}={}} \text{(associativity of } \cdot \text{ and } +\text{)}
 \end{aligned}
 $$
 
@@ -236,6 +235,7 @@ Now here comes the question: what is the use case? Well, both of these
 compositions appear when solving the maximum subarray sum problem.
 
 ## Maximum Subarray Sum Problem
+
 If we consider the following semiring $(\overline{\mathbb{Z}}, \max, +, -\infty,
 0)$, where we extend the integers with a smallest element $\overline{\mathbb{Z}}
 := \mathbb{Z} \cup \lbrace -\infty \rbrace$. Then we can compute the maximum
@@ -255,7 +255,11 @@ The resulting monoid is $\left(\left(\overline{\mathbb{Z}}^2\right)^2, \times,
 tuples and to only compute the sum once.
 
 $$
-(a_1, b_1, c_1) \oplus (a_2, b_2, c_2) := (a_1 + a_2, \max~\lbrace b_1, a_1 + b_2 \rbrace, \max~\lbrace c_2, c_1 + a_2 \rbrace)
+\begin{gathered}
+(a_1, b_1, c_1) \oplus (a_2, b_2, c_2) \\
+:= \\
+ (a_1 + a_2, \max~\lbrace b_1, a_1 + b_2 \rbrace, \max~\lbrace c_2, c_1 + a_2 \rbrace)
+\end{gathered}
 $$
 
 Now a single component is missing from this operation to compute the maximum
@@ -268,7 +272,11 @@ the maximum prefix sum and maximum suffix sum. We can simply add these together
 to see if combining the subarrays gives a new maximum subarray sum.
 
 $$
-(a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2) := (a_1 + a_2, \max~\lbrace b_1, a_1 + b_2 \rbrace, \max~\lbrace c_2, c_1 + a_2 \rbrace, \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace)
+\begin{gathered}
+(a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2) \\
+:= \\
+(a_1 + a_2, \max~\lbrace b_1, a_1 + b_2 \rbrace, \max~\lbrace c_2, c_1 + a_2 \rbrace, \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace)
+\end{gathered}
 $$
 
 The question is now whether this operation actually forms a monoid, it is fairly
@@ -276,7 +284,11 @@ easy to see the identity element is $(0, -\infty, -\infty, -\infty)$. It remains
 to show that the operation is associative:
 
 $$
-(a_1, b_1, c_1, d_1) \odot ((a_2, b_2, c_2, d_2) \odot (a_3, b_3, c_3, d_3)) = ((a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2)) \odot (a_3, b_3, c_3, d_3)
+\begin{gathered}
+(a_1, b_1, c_1, d_1) \odot ((a_2, b_2, c_2, d_2) \odot (a_3, b_3, c_3, d_3)) \\
+= \\
+((a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2)) \odot (a_3, b_3, c_3, d_3)
+\end{gathered}
 $$
 
 Luckily we only have to inspect the fourth component, we can start inspecting
@@ -293,12 +305,16 @@ Now we just have to substitute these values into the outer parentheses, then sim
 
 $$
 \begin{aligned}
-\pi_4((a_1, b_1, c_1, d_1) \odot ((a_2, b_2, c_2, d_2) \odot
-(a_3, b_3, c_3, d_3))) &= \max~\lbrace d_1, \max~\lbrace d_2, d_3, c_2 + b_3
-\rbrace, c_1 + \max~\lbrace b_2, a_2 + b_3 \rbrace \rbrace \quad&
+&\phantom{{}={}} \pi_4((a_1, b_1, c_1, d_1) \odot ((a_2, b_2, c_2, d_2) \odot
+(a_3, b_3, c_3, d_3))) \\
+&= \max~\lbrace d_1, \max~\lbrace d_2, d_3, c_2 + b_3
+\rbrace, c_1 + \max~\lbrace b_2, a_2 + b_3 \rbrace \rbrace \\
+&\phantom{{}={}}
 \text{(definition of } \odot \text{)} \\
-&= \max~\lbrace d_1, \max~\lbrace d_2, d_3, c_2 + b_3 \rbrace, \max~\lbrace c_1 + b_2, c_1 + a_2 + b_3 \rbrace \rbrace \quad& \text{(distributivity)} \\
-&= \max~\lbrace d_1, d_2, d_3, c_2 + b_3 ,c_1 + b_2, c_1 + a_2 + b_3 \rbrace \quad& \text{(associativity of } \max \text{)}
+&= \max~\lbrace d_1, \max~\lbrace d_2, d_3, c_2 + b_3 \rbrace, \max~\lbrace c_1 + b_2, c_1 + a_2 + b_3 \rbrace \rbrace \\
+&\phantom{{}={}} \text{(distributivity)} \\
+&= \max~\lbrace d_1, d_2, d_3, c_2 + b_3 ,c_1 + b_2, c_1 + a_2 + b_3 \rbrace \\
+&\phantom{{}={}} \text{(associativity of } \max \text{)}
 \end{aligned}
 $$
 
@@ -316,10 +332,15 @@ Lastly, we just have to substitute the result in.
 
 $$
 \begin{aligned}
-\pi_4(((a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2)) \odot (a_3, b_3, c_3, d_3)) &= \max~\lbrace \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace, d_3, \max~\lbrace c_2, c_1 + a_2 \rbrace + b_3 \rbrace \quad& \text{(definition of } \odot \text{)} \\
-&= \max~\lbrace \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace, d_3, \max~\lbrace c_2 + b_3, c_1 + a_2 + b_3 \rbrace\rbrace \quad& \text{(distributivity)} \\
-&= \max~\lbrace d_1, d_2, c_1 + b_2, d_3, c_2 + b_3, c_1 + a_2 + b_3 \rbrace \quad& \text{(associativity of } \max \text{)} \\
-&= \max~\lbrace d_1, d_2, d_3, c_2 + b_3, c_1 + b_2, c_1 + a_2 + b_3 \rbrace \quad& \text{(commutativity of } \max \text{)}
+&\phantom{{}={}} \pi_4(((a_1, b_1, c_1, d_1) \odot (a_2, b_2, c_2, d_2)) \odot (a_3, b_3, c_3, d_3)) \\
+&= \max~\lbrace \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace, d_3, \max~\lbrace c_2, c_1 + a_2 \rbrace + b_3 \rbrace \\
+&\phantom{{}={}} \text{(definition of } \odot \text{)} \\
+&= \max~\lbrace \max~\lbrace d_1, d_2, c_1 + b_2 \rbrace, d_3, \max~\lbrace c_2 + b_3, c_1 + a_2 + b_3 \rbrace\rbrace \\
+&\phantom{{}={}} \text{(distributivity)} \\
+&= \max~\lbrace d_1, d_2, c_1 + b_2, d_3, c_2 + b_3, c_1 + a_2 + b_3 \rbrace \\
+&\phantom{{}={}} \text{(associativity of } \max \text{)} \\
+&= \max~\lbrace d_1, d_2, d_3, c_2 + b_3, c_1 + b_2, c_1 + a_2 + b_3 \rbrace \\
+&\phantom{{}={}} \text{(commutativity of } \max \text{)}
 \end{aligned}
 $$
 
