@@ -1,0 +1,6 @@
+{
+  "title": "Monoid Composition & Maximum Subarray Sum Problem",
+  "date": "2026-06-14",
+  "author": "Due",
+  "description": "Some monoids can be composed into a single monoid, allowing a scan feeding into a reduce to be expressed as a single reduce. This turns out to be a useful combinator, with applications in parentheses matching, polynomial evaluation, and the maximum subarray sum problem."
+}

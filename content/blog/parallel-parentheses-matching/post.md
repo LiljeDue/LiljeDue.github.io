@@ -1,9 +1,9 @@
 A professor at the PLTC section by the name of [Martin
 Elsman](https://elsman.com/) introduced me to a paper called [More Fun with
 Monoids](https://link.springer.com/chapter/10.1007/978-981-92-0184-6_7) by [Oleg
-Kiselyov](https://okmij.org/ftp/) (There is also [blog
-post](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html)). Because of this
-paper, I looked into what other problems can be expressed as a
+Kiselyov](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html) (There is
+also [blog post](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html)).
+Because of this paper, I looked into what other problems can be expressed as a
 [map-reduce](https://en.wikipedia.org/wiki/MapReduce) pattern. Apparently
 asserting that a string of parentheses is balanced can be done in this manner,
 it has it downsides (which we will get to), but this is not the parallel
