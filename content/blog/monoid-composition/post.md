@@ -33,12 +33,12 @@ The question I had is whether this generalizes, and it generalizes to two
 composition rules which seem useful. We will start by abstracting over the
 monoids $(\overline{\mathbb{Z}}, +, 0)$ and $(\overline{\mathbb{Z}}, \min,
 \infty)$ to arbitrary ones $(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ and see what
-properties are needed to derive the composed monoid $(\overline{\mathbb{Z}}^2,
-\star, (0, \infty))$. Through exploring this subject I realized that the key to
-seeing whether two monoids can be composed is related to whether they form a
-non-commutative semiring. So we need $(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ to
-be monoids such that they form a non-commutative semiring, meaning we have the
-extra property that $\cdot$ can be distributed over a $+$ operation:
+properties are needed to derive the composed monoid $(A^2, \star, (e_\cdot,
+e_+))$. Through exploring this subject I realized that the key to seeing whether
+two monoids can be composed is related to whether they form a non-commutative
+semiring. So we need $(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ to be monoids such
+that they form a non-commutative semiring, meaning we have the extra property
+that $\cdot$ can be distributed over a $+$ operation:
 
 $$
 \begin{gathered}
