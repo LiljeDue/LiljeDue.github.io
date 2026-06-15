@@ -20,7 +20,7 @@ monoid is able to compute is a sum and the minimum of the prefix sum. So this is
 a case of computing a reduction and a prefix sum in a single reduction.
 
 $$
-\max~\lbrace a_1, a_1 + a_2, a_1 + a_2 + a_3, \ldots, a_1 + a_2 +~ \cdots~+ a_n \rbrace
+\min~\lbrace a_1, a_1 + a_2, a_1 + a_2 + a_3, \ldots, a_1 + a_2 +~ \cdots~+ a_n \rbrace
 $$
 
 The question I had is whether this generalizes, and it generalizes to two
