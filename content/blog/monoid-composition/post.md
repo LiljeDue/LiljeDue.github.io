@@ -63,7 +63,7 @@ semiring. It fulfills distributivity $a + \min~\lbrace b, c \rbrace =
 non-commutative semiring, we can construct a composed monoid which computes the
 first monoid followed by another monoid.
 
-## Monoid Composition
+## First Monoid Composition
 
 Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
 non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
@@ -171,7 +171,7 @@ $$
 Now it will be shown that it is possible to construct a reduction of a suffix
 sum given a non-commutative semiring. I will do this for completeness' sake.
 
-## Reverse Monoid Composition
+## Second Monoid Composition
 
 Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
 non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
