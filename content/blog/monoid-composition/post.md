@@ -16,11 +16,17 @@ $$
 
 Defined on the extended integers $\overline{\mathbb{Z}} := \mathbb{Z} \cup
 \lbrace \infty \rbrace$ with the identity element $(0, \infty)$. What this
-monoid is able to compute is a sum and the minimum of the prefix sum. So this is
-a case of computing a reduction and a prefix sum in a single reduction.
+monoid is able to compute is a sum and the minimum of the prefix sum. Hence this
+is a case of computing a reduction of a scan in a single reduction:
 
 $$
 \min~\lbrace a_1, a_1 + a_2, a_1 + a_2 + a_3, \ldots, a_1 + a_2 +~ \cdots~+ a_n \rbrace
+$$
+
+With the caveat that we also get the last element of the scan result:
+
+$$
+a_1 + a_2 +~ \cdots~+ a_n
 $$
 
 The question I had is whether this generalizes, and it generalizes to two
@@ -124,17 +130,18 @@ $$
 
 Hence we have shown that $(A^2, \star, (e_\cdot, e_+))$ is a monoid.
 
-Now some observations: we can clearly see on the last line of the left- and
-right-hand sides of the associativity derivations that if we pick $a_i = b_i$
-then we get a monoid composed with a monoid. Furthermore, we see that if instead
-we were given two semigroups (i.e. monoids without an identity element), then we
-would only need the distributive property and two associative operations to
-construct a composed semigroup. This is useful when programming, as you can just
-add an identity element afterwards if you do not have all the properties or an
-identity element is missing. We saw in the last blog post that the monoid
-composition of the summation and minimum monoid can be used to assert whether
-parentheses match. It can also be used for evaluating polynomials; this is the
-same approach as found in [Oleg
+Now some observations: we can clearly see on the last step of the left- and
+right-hand sides of the associativity derivations we will get a reduction of a
+scan if we pick $a_i = b_i$. This would be a monoid composed with a monoid
+meaning the first monoids result feeds directly into the other. Furthermore, we
+see that if instead we were given two semigroups (i.e. monoids without an
+identity element), then we would only need the distributive property and two
+associative operations to construct a composed semigroup. This is useful when
+programming, as you can just add an identity element afterwards if you do not
+have all the properties or an identity element is missing. We saw in the last
+blog post that the monoid composition of the summation and minimum monoid can be
+used to assert whether parentheses match. It can also be used for evaluating
+polynomials; this is the same approach as found in [Oleg
 Kiselyov](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html)'s work. If we
 pick the semiring $(\mathbb{R}, +, \cdot, e_+, e_\cdot)$ and consider the
 reduction of a prefix sum for arbitrary elements.
