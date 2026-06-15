@@ -11,7 +11,7 @@ If we look back at the parentheses matching monoid then it was defined by the
 following operation.
 
 $$
-(v_0, m_0) \star (v_1,m_1) := (v_0 + v_1, \min~\lbrace m_0, v_0 + m_1\rbrace)
+(v_0, m_0) \oplus (v_1,m_1) := (v_0 + v_1, \min~\lbrace m_0, v_0 + m_1\rbrace)
 $$
 
 Defined on the extended integers $\overline{\mathbb{Z}} := \mathbb{Z} \cup
