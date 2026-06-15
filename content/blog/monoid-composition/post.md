@@ -32,13 +32,13 @@ $$
 The question I had is whether this generalizes, and it generalizes to two
 composition rules which seem useful. We will start by abstracting over the
 monoids $(\overline{\mathbb{Z}}, +, 0)$ and $(\overline{\mathbb{Z}}, \min,
-\infty)$ to arbitrary ones and see what properties are needed to derive the
-composed monoid $(\overline{\mathbb{Z}}^2, \star, (0, \infty))$. Through
-exploring this subject I realized that the key to seeing whether two monoids can be
-composed is related to whether they form a non-commutative semiring. So we need
-$(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ to be monoids such that they form a
-non-commutative semiring, meaning we have the extra property that $\cdot$ can be
-distributed over a $+$ operation:
+\infty)$ to arbitrary ones $(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ and see what
+properties are needed to derive the composed monoid $(\overline{\mathbb{Z}}^2,
+\star, (0, \infty))$. Through exploring this subject I realized that the key to
+seeing whether two monoids can be composed is related to whether they form a
+non-commutative semiring. So we need $(A, +, e_+)$ and $(A, \cdot, e_\cdot)$ to
+be monoids such that they form a non-commutative semiring, meaning we have the
+extra property that $\cdot$ can be distributed over a $+$ operation:
 
 $$
 \begin{gathered}
@@ -143,7 +143,7 @@ blog post that the monoid composition of the summation and minimum monoid can be
 used to assert whether parentheses match. It can also be used for evaluating
 polynomials; this is the same approach as found in [Oleg
 Kiselyov](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html)'s work. If we
-pick the semiring $(\mathbb{R}, +, \cdot, e_+, e_\cdot)$ and consider the
+pick the semiring $(\mathbb{R}, +, \cdot, 0, 1)$ and consider the
 reduction of a prefix sum for arbitrary elements.
 
 $$
