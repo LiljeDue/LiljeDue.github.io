@@ -266,10 +266,11 @@ Now a single component is missing from this operation to compute the maximum
 subarray sum. We extend the 3-tuple to a 4-tuple with a component which is the
 maximum subarray sum of the subarray the tuple corresponds to. Here we have
 three cases: either the left or right tuple has the maximum subarray sum or
-combining the two subarrays gives the maximum subarray sum. The first two cases
-are easy, but the third one is a little harder and is the reason why we compute
-the maximum prefix sum and maximum suffix sum. We can simply add these together
-to see if combining the subarrays gives a new maximum subarray sum.
+combining the two subarrays gives the maximum subarray sum for the given
+contigious subarray the two tuples represent. The first two cases are easy, but
+the third one is a little harder and is the reason why we compute the maximum
+prefix sum and maximum suffix sum. We can simply add these together to see if
+the combined subarrays gives a new maximum subarray sum.
 
 $$
 \begin{gathered}
