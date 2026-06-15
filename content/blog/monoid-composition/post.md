@@ -131,8 +131,11 @@ $$
 Hence we have shown that $(A^2, \star, (e_\cdot, e_+))$ is a monoid.
 
 Now some observations: we can clearly see on the last step of the left- and
-right-hand sides of the associativity derivations we will get a reduction of a
-scan if we pick $a_i = b_i$. This would be a monoid composed with a monoid
+right-hand sides of the associativity derivations we will get something close to
+a reduction of a scan. $$ b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)
++~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot b_n) $$
+
+This would be a monoid composed with a monoid
 meaning the first monoids result feeds directly into the other. Furthermore, we
 see that if instead we were given two semigroups (i.e. monoids without an
 identity element), then we would only need the distributive property and two
@@ -143,8 +146,8 @@ blog post that the monoid composition of the summation and minimum monoid can be
 used to assert whether parentheses match. It can also be used for evaluating
 polynomials; this is the same approach as found in [Oleg
 Kiselyov](https://okmij.org/ftp/Algorithms/map-monoid-reduce.html)'s work. If we
-pick the semiring $(\mathbb{R}, +, \cdot, 0, 1)$ and consider the
-reduction of a prefix sum for arbitrary elements.
+pick the semiring $(\mathbb{R}, +, \cdot, 0, 1)$ and consider the reduction of a
+prefix sum for arbitrary elements.
 
 $$
 b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3) +~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot b_n)
@@ -160,6 +163,8 @@ b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3) +~\cdots~+ (a_1 \cdot a_2 \cdo
 &= \sum_{i = 1}^n b_i x^{i - 1}
 \end{aligned}
 $$
+
+This ends up being a formula for polynomial 
 
 Now this is not the only way to compose two monoids; it is possible to compose
 them such that you get a reduction of a suffix sum instead.
@@ -358,4 +363,4 @@ What we see is that the monoid composition seems useful and appears in quite a
 few places. It also seems to be a good combinator for constructing new monoids
 from monoids. Sadly, I had no deeper insight into how the last part of the
 maximum subarray sum monoid comes to light, but hopefully the explanation still
-helps give an insight into why the monoid actually works.
+helps give an insight into why the monoid actually works. 

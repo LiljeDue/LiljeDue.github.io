@@ -1,0 +1,160 @@
+I realized from my previous post that it is possible to use monoid composition
+to turn an inclusive scan into an exclusive scan. I assume that the resulting
+operation must somebody else have derived beforehand but this blog post uses the
+first monoid composition rule and some rewriting insigt to derive it. The
+initial idea is if we consider an arbitrary non-commutative semiring $(A, +,
+\cdot, e_+, e_\cdot)$. Then if we compute the scan of a scan for the
+$i\text{th}$ element in the array we would get:
+
+$$
+b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3) +~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot b_i)
+$$
+
+Now if we let $b_j = e_+$ then we get the following result:
+
+$$
+e_+ + a_1 + (a_1 \cdot a_2) +~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1})
+$$
+
+If it is possible for us to just select the last sum to the right then we would be able to compute the exclusive prefix sum of the $i\text{th}$ element:
+
+$$
+a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1}
+$$
+
+There is an operation which always picks the right most element I will call _take right_.
+
+$$
+a \oplus b = b
+$$
+
+This operation is associative:
+
+$$
+a \oplus (b \oplus c) = a \oplus c = c = b \oplus c = (a \oplus b) \oplus c
+$$
+
+It also supports distributivity for any operation, since applying the operation to both elements and taking the right element is the same as taking the right element and then applying the operation.
+
+$$
+\begin{aligned}
+a \cdot (b \oplus c) = (a \cdot b) \oplus (a \cdot c) = a \cdot c \\
+(b \oplus c) \cdot a = (b \cdot a) \oplus (c \cdot a) = c \cdot a \\
+\end{aligned}
+$$
+
+Now the trouble is annihilation and having an identity element. But as discussed
+in last blog post we really only need two semigroups which support
+distributivity, then we can add some identity element afterwards. So for any semigroup $(A, \cdot)$ we can define an associative operation:
+
+$$
+(a_1, b_1) \star (a_2, b_2) = (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
+$$
+
+We can implement this in Futhark by defining the take right operation and the
+exlcusive operation construction:
+
+```
+def take_right 't (_: t) (a: t) : t = a
+
+def exclusive_op 't (op: t -> t -> t) (a1: t, b1: t) (a2: t, b2: t) : (t, t) =
+  (a1 `op` a2, take_right b1 (a1 `op` b2))
+```
+
+But we also need to add an identity element so we have a monoid that can be used in Futharks scan.
+
+```
+type opt 't =
+    #none
+  | #some t
+
+def add_identity 'a (op: a -> a -> a) (a: opt a) (b: opt a) : opt a =
+  match (a, b)
+  case (#some a', #some b') -> #some (a' `op` b')
+  case (#some _, #none) -> a
+  case (#none, #some _) -> b
+  case (#none, #none) -> #none
+```
+
+Now all that remains is to map the incoming element such that we have $b_j$ is
+the identity element $b_j = e_\cdot$. And the ability to retrieve the second tuple component to get the exclusive scan in the end.
+
+```
+def gen 't (ne: t) (t: t) : opt (t, t) =
+  #some (t, ne)
+
+def obs 't (ne: t) (t: opt (t, t)) : t =
+  match t
+  case #none -> ne
+  case (#some (_, r)) -> r
+```
+
+Now we can just combine every function to get our exclusive scan.
+
+```
+def exscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n]t =
+  map (gen ne) xs
+  |> scan (add_identity (exclusive_op op)) (#none :> opt (t, t))
+  |> map (obs ne)
+```
+
+Back in the day when Futhark did not have [scan-scatter
+fusion](https://futhark-lang.org/blog/2026-03-24-scan-scatter-fusion.html) this
+would had been very nice. The problem was futhark did not fuse scan and scatter
+together so you may not be able to map a function before or after a scan
+depending on the exlcusive scan implementation. The current exclusive scan
+implementation does allow for the ability to fuse maps before or after the scan:
+
+```
+def exscan [n] 'a (op: a -> a -> a) (ne: a) (as: [n]a) : *[n]a =
+  scatter (replicate n ne)
+          (map (+ 1) (0..1..<n))
+          (scan op ne as)
+```
+
+But you can not feed the exclusive scan result directly into a scatter. So using
+this exclusive scan we have derived it can lead to better fusion. But as it
+stand currently it will be a 3-tuple in the futhark compiler and may be slower.
+Luckily I have a very smart PhD advisor by the name of [Troels
+Henriksen](https://hjemmesider.diku.dk/~athas/) which I showed my work to. He
+came with suggestions and we were able to simplify it to avoid the sum type.
+
+The realization is in regards to the $\star$ operation.
+
+$$
+(a_1, b_1) \star (a_2, b_2) = (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
+$$
+
+We can simplify the $\oplus$ operation away since we are always taking the right
+element.
+
+$$
+(a_1, b_1) \diamond (a_2, b_2) = (a_1 \cdot a_2, a_1 \cdot b_2)
+$$
+
+The second realization is $(e_\cdot, e_\cdot)$ is an identity element.
+
+$$
+(e_\cdot, e_\cdot) \diamond (a, b) = (e_\cdot \cdot a, e_\cdot \cdot b) = (a, b) = (a \cdot e_\cdot, a \cdot e_\cdot) = (a, b) \diamond (e_\cdot, e_\cdot)
+$$
+
+The third observation is the first tuple component computes the inclusive scan,
+and the second component computes the exclusive scan leading to a scan which
+computes both at the same time
+
+```
+def lift_op 't (op: t -> t -> t) (a1: t, _: t) (a2: t, b2: t) : (t, t) =
+  (a1 `op` a2, a1 `op` b2)
+
+def gen 't (ne: t) (t: t) : (t, t) =
+  (t, ne)
+
+def incexscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
+  map (gen ne) xs
+  |> scan (lift_op op) (ne, ne)
+```
+
+My advisor also came up with an idea for a usecase, where I believe it would be
+very useful, I need it for my parallel-parser generator
+[Alpacc](https://github.com/diku-dk/alpacc). But the explanation of this is
+beyond the scope of the post.
