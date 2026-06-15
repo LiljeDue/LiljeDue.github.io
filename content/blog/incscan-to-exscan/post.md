@@ -22,7 +22,7 @@ $$
 a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1}
 $$
 
-There is an operation which always picks the right most element I will call _take right_.
+There is an operation which always picks the right most element I will call take right.
 
 $$
 a \oplus b = b
@@ -101,9 +101,9 @@ def exscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n]t =
 Back in the day when Futhark did not have [scan-scatter
 fusion](https://futhark-lang.org/blog/2026-03-24-scan-scatter-fusion.html) this
 would had been very nice. The problem was futhark did not fuse scan and scatter
-together so you may not be able to map a function before or after a scan
-depending on the exlcusive scan implementation. The current exclusive scan
-implementation does allow for the ability to fuse maps before or after the scan:
+together so you may not have different problems with fusion depending on the
+exlcusive scan implementation. The current exclusive scan implementation does
+allow for the ability to fuse maps before or after the scan:
 
 ```
 def exscan [n] 'a (op: a -> a -> a) (ne: a) (as: [n]a) : *[n]a =
@@ -154,7 +154,14 @@ def incexscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
   |> scan (lift_op op) (ne, ne)
 ```
 
-My advisor also came up with an idea for a usecase, where I believe it would be
+My advisor also came up with an idea for a use case, where I believe it would be
 very useful, I need it for my parallel-parser generator
 [Alpacc](https://github.com/diku-dk/alpacc). But the explanation of this is
 beyond the scope of the post.
+
+
+$$
+b_i + (b_{i - 1} \cdot a_{i}) + (b_{i - 2} \cdot a_{i - 1} \cdot a_n) +~\cdots~+ (b_1 \cdot a_2 \cdot~ \cdots~\cdot a_i)
+$$
+
+take
