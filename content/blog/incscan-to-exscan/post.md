@@ -158,10 +158,3 @@ My advisor also came up with an idea for a use case, where I believe it would be
 very useful, I need it for my parallel-parser generator
 [Alpacc](https://github.com/diku-dk/alpacc). But the explanation of this is
 beyond the scope of the post.
-
-
-$$
-b_i + (b_{i - 1} \cdot a_{i}) + (b_{i - 2} \cdot a_{i - 1} \cdot a_n) +~\cdots~+ (b_1 \cdot a_2 \cdot~ \cdots~\cdot a_i)
-$$
-
-take
