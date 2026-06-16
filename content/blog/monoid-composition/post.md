@@ -366,6 +366,7 @@ maximum subarray sum monoid comes to light, but hopefully the explanation still
 helps give an insight into why the monoid actually works.
 
 ## Note from the future
+
 Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
 non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
 following operations:
