@@ -363,4 +363,16 @@ What we see is that the monoid composition seems useful and appears in quite a
 few places. It also seems to be a good combinator for constructing new monoids
 from monoids. Sadly, I had no deeper insight into how the last part of the
 maximum subarray sum monoid comes to light, but hopefully the explanation still
-helps give an insight into why the monoid actually works. 
+helps give an insight into why the monoid actually works.
+
+## Note from the future
+Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
+non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
+following operations:
+
+$$
+(a_1, b_1) ~\triangle~ (a_2, b_2) := (a_1 \cdot a_2, (a_1 \cdot b_2) + b_1) \\
+(a_1, b_1) ~\square~ (a_2, b_2) := (a_1 \cdot a_2, (b_1 \cdot  a_2) + b_2)
+$$
+
+These should also form monoids $(A, \triangle, (e_\cdot, e_+))$ and $(A, \triangle, (e_\cdot, e_+))$ as far as I can gather.
