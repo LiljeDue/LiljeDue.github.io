@@ -251,7 +251,7 @@ compositions appear when solving the maximum subarray sum problem.
 If we consider the following semiring $(\overline{\mathbb{Z}}, \max, +, -\infty,
 0)$, where we extend the integers with a smallest element $\overline{\mathbb{Z}}
 := \mathbb{Z} \cup \lbrace -\infty \rbrace$. Then we can compute the maximum
-prefix sum and maximum suffix sum using the two monoids composition rules that
+prefix sum and maximum suffix sum using the two monoid composition rules that
 have been described which forms $\left(\overline{\mathbb{Z}}^2, \star, (0,
 -\infty)\right)$ and $\left(\overline{\mathbb{Z}}^2, \diamond, (0,
 -\infty)\right)$. These monoids can be combined using the monoid product
