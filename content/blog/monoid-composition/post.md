@@ -108,7 +108,7 @@ $$
 &\phantom{{}={}} \text{(definition of }\star\text{)} \\
 &= \left(a_1 \cdot (a_2 \cdot a_3), b_1 + \left(a_1 \cdot (b_2 + (a_2 \cdot b_3))\right)\right) \\
 &\phantom{{}={}} \text{(definition of }\star\text{)} \\
-&= \left((a_1 \cdot a_2) \cdot a_3, b_1 + \left((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\right)\right) \\
+&= \left(a_1 \cdot (a_2 \cdot a_3), b_1 + \left((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\right)\right) \\
 &\phantom{{}={}} \text{(distributivity)} \\
 &= \left(a_1 \cdot a_2 \cdot a_3, b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\right) \\
 &\phantom{{}={}} \text{(associativity of } \cdot \text{and} + \text{)}
@@ -164,7 +164,7 @@ b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3) +~\cdots~+ (a_1 \cdot a_2 \cdo
 \end{aligned}
 $$
 
-This ends up being a formula for polynomial 
+This ends up being a formula for a polynomial.
 
 Now this is not the only way to compose two monoids; it is possible to compose
 them such that you get a reduction of a suffix sum instead.
