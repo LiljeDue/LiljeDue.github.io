@@ -16,13 +16,15 @@ $$
 e_+ + a_1 + (a_1 \cdot a_2) +~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1})
 $$
 
-If it is possible for us to just select the last sum to the right then we would be able to compute the exclusive prefix sum of the $i\text{th}$ element:
+If it is possible for us to just select the last sum to the right then we would
+be able to compute the exclusive prefix sum of the $i\text{th}$ element:
 
 $$
 a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1}
 $$
 
-There is an operation which always picks the right most element I will call take right.
+There is an operation which always picks the right most element I will call take
+right.
 
 $$
 a \oplus b = b
@@ -34,7 +36,9 @@ $$
 a \oplus (b \oplus c) = a \oplus c = c = b \oplus c = (a \oplus b) \oplus c
 $$
 
-It also supports distributivity for any operation, since applying the operation to both elements and taking the right element is the same as taking the right element and then applying the operation.
+It also supports distributivity for any operation, since applying the operation
+to both elements and taking the right element is the same as taking the right
+element and then applying the operation.
 
 $$
 \begin{aligned}
@@ -45,7 +49,8 @@ $$
 
 Now the trouble is annihilation and having an identity element. But as discussed
 in last blog post we really only need two semigroups which support
-distributivity, then we can add some identity element afterwards. So for any semigroup $(A, \cdot)$ we can define an associative operation:
+distributivity, then we can add some identity element afterwards. So for any
+semigroup $(A, \cdot)$ we can define an associative operation:
 
 $$
 (a_1, b_1) \star (a_2, b_2) = (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
@@ -61,7 +66,8 @@ def exclusive_op 't (op: t -> t -> t) (a1: t, b1: t) (a2: t, b2: t) : (t, t) =
   (a1 `op` a2, take_right b1 (a1 `op` b2))
 ```
 
-But we also need to add an identity element so we have a monoid that can be used in Futharks scan.
+But we also need to add an identity element so we have a monoid that can be used
+in Futharks scan.
 
 ```
 type opt 't =
@@ -77,7 +83,8 @@ def add_identity 'a (op: a -> a -> a) (a: opt a) (b: opt a) : opt a =
 ```
 
 Now all that remains is to map the incoming element such that we have $b_j$ is
-the identity element $b_j = e_\cdot$. And the ability to retrieve the second tuple component to get the exclusive scan in the end.
+the identity element $b_j = e_\cdot$. And the ability to retrieve the second
+tuple component to get the exclusive scan in the end.
 
 ```
 def gen 't (ne: t) (t: t) : opt (t, t) =
@@ -135,7 +142,7 @@ $$
 The second realization is $(e_\cdot, e_\cdot)$ is an identity element.
 
 $$
-(e_\cdot, e_\cdot) \diamond (a, b) = (e_\cdot \cdot a, e_\cdot \cdot b) = (a, b) = (a \cdot e_\cdot, a \cdot e_\cdot) = (a, b) \diamond (e_\cdot, e_\cdot)
+(e_\cdot, e_\cdot) \diamond (a, b) = (e_\cdot \cdot a, e_\cdot \cdot b) = (a, b) = (a \cdot e_\cdot, b \cdot e_\cdot) = (a, b) \diamond (e_\cdot, e_\cdot)
 $$
 
 The third observation is the first tuple component computes the inclusive scan,
