@@ -147,12 +147,9 @@ computes both at the same time:
 def lift_op 't (op: t -> t -> t) (ne: t) (a1: t, _:  t) (a2: t, b2: t) : (t, t) =
   (a1 `op` a2,  a1 `op` b2)
 
-def gen 't (ne: t) (t: t) : with_neutral (t, t) =
-  #val (t, ne)
-
-def obs 't (ne: t) (t: with_neutral (t, t)) : t =
+def obs 't (ne: t) (t: with_neutral (t, t)) : (t, t) =
   match t
-  case #ne -> ne
+  case #ne -> (ne, ne)
   case (#val r) -> r
 
 def incexscan [n] 't (eq: t -> t -> bool) (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
