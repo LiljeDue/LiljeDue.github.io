@@ -103,7 +103,7 @@ Now we can just combine every function to get our exclusive scan.
 ```
 def exscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n]t =
   map (gen ne) xs
-  |> scan (f_with_neutral (exclusive_op op)) (#neutral :> with_neutral (t, t))
+  |> scan (f_with_neutral (exclusive_op op)) #neutral
   |> map (obs ne)
 ```
 
@@ -144,7 +144,7 @@ and the second component computes the exclusive scan leading to a scan which
 computes both at the same time:
 
 ```
-def lift_op 't (op: t -> t -> t) (ne: t) (a1: t, _:  t) (a2: t, b2: t) : (t, t) =
+def exclusive_op 't (op: t -> t -> t) (a1: t, _:  t) (a2: t, b2: t) : (t, t) =
   (a1 `op` a2,  a1 `op` b2)
 
 def obs 't (ne: t) (t: with_neutral (t, t)) : (t, t) =
@@ -152,9 +152,9 @@ def obs 't (ne: t) (t: with_neutral (t, t)) : (t, t) =
   case #neutral -> (ne, ne)
   case (#val r) -> r
 
-def incexscan [n] 't (eq: t -> t -> bool) (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
-  map (gen ne) xs
-  |> scan (f_with_neutral (exclusive_op op)) (#neutral :> with_neutral (t, t))
+def incexscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
+  map (\x -> #val (x, ne)) xs
+  |> scan (f_with_neutral (exclusive_op op)) #neutral
   |> map (obs ne)
 ```
 
