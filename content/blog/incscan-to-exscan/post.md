@@ -94,7 +94,7 @@ def gen 't (ne: t) (t: t) : with_neutral (t, t) =
 
 def obs 't (ne: t) (t: with_neutral (t, t)) : t =
   match t
-  case #ne -> ne
+  case #neutral -> ne
   case (#val (_, r)) -> r
 ```
 
@@ -103,7 +103,7 @@ Now we can just combine every function to get our exclusive scan.
 ```
 def exscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n]t =
   map (gen ne) xs
-  |> scan (f_with_neutral (exclusive_op op)) (#ne :> with_neutral (t, t))
+  |> scan (f_with_neutral (exclusive_op op)) (#neutral :> with_neutral (t, t))
   |> map (obs ne)
 ```
 
@@ -149,12 +149,12 @@ def lift_op 't (op: t -> t -> t) (ne: t) (a1: t, _:  t) (a2: t, b2: t) : (t, t) 
 
 def obs 't (ne: t) (t: with_neutral (t, t)) : (t, t) =
   match t
-  case #ne -> (ne, ne)
+  case #neutral -> (ne, ne)
   case (#val r) -> r
 
 def incexscan [n] 't (eq: t -> t -> bool) (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
   map (gen ne) xs
-  |> scan (f_with_neutral (exclusive_op op)) (#ne :> with_neutral (t, t))
+  |> scan (f_with_neutral (exclusive_op op)) (#neutral :> with_neutral (t, t))
   |> map (obs ne)
 ```
 
