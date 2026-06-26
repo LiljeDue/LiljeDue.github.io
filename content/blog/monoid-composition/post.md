@@ -108,7 +108,7 @@ $$
 &\phantom{{}={}} \text{(definition of }\star\text{)} \\
 &= \left(a_1 \cdot (a_2 \cdot a_3), b_1 + \left(a_1 \cdot (b_2 + (a_2 \cdot b_3))\right)\right) \\
 &\phantom{{}={}} \text{(definition of }\star\text{)} \\
-&= \left((a_1 \cdot a_2) \cdot a_3, b_1 + \left((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\right)\right) \\
+&= \left(a_1 \cdot (a_2 \cdot a_3), b_1 + \left((a_1 \cdot b_2) + (a_1 \cdot (a_2 \cdot b_3))\right)\right) \\
 &\phantom{{}={}} \text{(distributivity)} \\
 &= \left(a_1 \cdot a_2 \cdot a_3, b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3)\right) \\
 &\phantom{{}={}} \text{(associativity of } \cdot \text{and} + \text{)}
@@ -164,7 +164,7 @@ b_1 + (a_1 \cdot b_2) + (a_1 \cdot a_2 \cdot b_3) +~\cdots~+ (a_1 \cdot a_2 \cdo
 \end{aligned}
 $$
 
-This ends up being a formula for polynomial 
+This ends up being a formula for a polynomial.
 
 Now this is not the only way to compose two monoids; it is possible to compose
 them such that you get a reduction of a suffix sum instead.
@@ -251,7 +251,7 @@ compositions appear when solving the maximum subarray sum problem.
 If we consider the following semiring $(\overline{\mathbb{Z}}, \max, +, -\infty,
 0)$, where we extend the integers with a smallest element $\overline{\mathbb{Z}}
 := \mathbb{Z} \cup \lbrace -\infty \rbrace$. Then we can compute the maximum
-prefix sum and maximum suffix sum using the two monoids composition rules that
+prefix sum and maximum suffix sum using the two monoid composition rules that
 have been described which forms $\left(\overline{\mathbb{Z}}^2, \star, (0,
 -\infty)\right)$ and $\left(\overline{\mathbb{Z}}^2, \diamond, (0,
 -\infty)\right)$. These monoids can be combined using the monoid product
@@ -364,16 +364,3 @@ few places. It also seems to be a good combinator for constructing new monoids
 from monoids. Sadly, I had no deeper insight into how the last part of the
 maximum subarray sum monoid comes to light, but hopefully the explanation still
 helps give an insight into why the monoid actually works.
-
-## Note from the future
-
-Let $(A, +, e_+)$ and, $(A, \cdot, e_\cdot)$ be monoids that form
-non-commutative semiring $(A, +, \cdot, e_+, e_\cdot)$. From this we define the
-following operations:
-
-$$
-(a_1, b_1) ~\triangle~ (a_2, b_2) := (a_1 \cdot a_2, (a_1 \cdot b_2) + b_1) \\
-(a_1, b_1) ~\square~ (a_2, b_2) := (a_1 \cdot a_2, (b_1 \cdot  a_2) + b_2)
-$$
-
-These should also form monoids $(A, \triangle, (e_\cdot, e_+))$ and $(A, \triangle, (e_\cdot, e_+))$ as far as I can gather.

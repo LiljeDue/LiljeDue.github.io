@@ -16,13 +16,15 @@ $$
 e_+ + a_1 + (a_1 \cdot a_2) +~\cdots~+ (a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1})
 $$
 
-If it is possible for us to just select the last sum to the right then we would be able to compute the exclusive prefix sum of the $i\text{th}$ element:
+If it is possible for us to just select the last sum to the right then we would
+be able to compute the exclusive prefix sum of the $i\text{th}$ element:
 
 $$
 a_1 \cdot a_2 \cdot~ \cdots~\cdot a_{i - 1}
 $$
 
-There is an operation which always picks the right most element I will call take right.
+There is an operation which always picks the right most element I will call take
+right.
 
 $$
 a \oplus b = b
@@ -34,7 +36,9 @@ $$
 a \oplus (b \oplus c) = a \oplus c = c = b \oplus c = (a \oplus b) \oplus c
 $$
 
-It also supports distributivity for any operation, since applying the operation to both elements and taking the right element is the same as taking the right element and then applying the operation.
+It also supports distributivity for any operation, since applying the operation
+to both elements and taking the right element is the same as taking the right
+element and then applying the operation.
 
 $$
 \begin{aligned}
@@ -45,7 +49,8 @@ $$
 
 Now the trouble is annihilation and having an identity element. But as discussed
 in last blog post we really only need two semigroups which support
-distributivity, then we can add some identity element afterwards. So for any semigroup $(A, \cdot)$ we can define an associative operation:
+distributivity, then we can add some identity element afterwards. So for any
+semigroup $(A, \cdot)$ we can define an associative operation:
 
 $$
 (a_1, b_1) \star (a_2, b_2) = (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
@@ -61,32 +66,36 @@ def exclusive_op 't (op: t -> t -> t) (a1: t, b1: t) (a2: t, b2: t) : (t, t) =
   (a1 `op` a2, take_right b1 (a1 `op` b2))
 ```
 
-But we also need to add an identity element so we have a monoid that can be used in Futharks scan.
+But we also need to add an identity element so we have a monoid that can be used
+in Futharks scan.
 
 ```
-type opt 't =
-    #none
-  | #some t
+type with_neutral 't =
+    #neutral
+  | #val t
 
-def add_identity 'a (op: a -> a -> a) (a: opt a) (b: opt a) : opt a =
-  match (a, b)
-  case (#some a', #some b') -> #some (a' `op` b')
-  case (#some _, #none) -> a
-  case (#none, #some _) -> b
-  case (#none, #none) -> #none
+def f_with_neutral 't (f: t -> t -> t)
+                      (x: with_neutral t)
+                      (y: with_neutral t)
+                      : with_neutral t =
+  match (x, y)
+  case (#val x, #val y) -> #val (f x y)
+  case (#neutral, _) -> y
+  case (_, #neutral) -> x
 ```
 
 Now all that remains is to map the incoming element such that we have $b_j$ is
-the identity element $b_j = e_\cdot$. And the ability to retrieve the second tuple component to get the exclusive scan in the end.
+the identity element $b_j = e_\cdot$. And the ability to retrieve the second
+tuple component to get the exclusive scan in the end.
 
 ```
-def gen 't (ne: t) (t: t) : opt (t, t) =
-  #some (t, ne)
+def gen 't (ne: t) (t: t) : with_neutral (t, t) =
+  #val (t, ne)
 
-def obs 't (ne: t) (t: opt (t, t)) : t =
+def obs 't (ne: t) (t: with_neutral (t, t)) : t =
   match t
-  case #none -> ne
-  case (#some (_, r)) -> r
+  case #neutral -> ne
+  case (#val (_, r)) -> r
 ```
 
 Now we can just combine every function to get our exclusive scan.
@@ -94,7 +103,7 @@ Now we can just combine every function to get our exclusive scan.
 ```
 def exscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n]t =
   map (gen ne) xs
-  |> scan (add_identity (exclusive_op op)) (#none :> opt (t, t))
+  |> scan (f_with_neutral (exclusive_op op)) #neutral
   |> map (obs ne)
 ```
 
@@ -117,42 +126,41 @@ this exclusive scan we have derived it can lead to better fusion. But as it
 stand currently it will be a 3-tuple in the futhark compiler and may be slower.
 Luckily I have a very smart PhD advisor by the name of [Troels
 Henriksen](https://hjemmesider.diku.dk/~athas/) which I showed my work to. He
-came with suggestions and we were able to simplify it to avoid the sum type.
-
-The realization is in regards to the $\star$ operation.
-
-$$
-(a_1, b_1) \star (a_2, b_2) = (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
-$$
-
-We can simplify the $\oplus$ operation away since we are always taking the right
-element.
+came with suggestions to make the code simpler. The first realization is in
+regards to the $\star$ operation.
 
 $$
-(a_1, b_1) \diamond (a_2, b_2) = (a_1 \cdot a_2, a_1 \cdot b_2)
+(a_1, b_1) \star (a_2, b_2) := (a_1 \cdot a_2, b_1 \oplus (a_1 \cdot b_2))
 $$
 
-The second realization is $(e_\cdot, e_\cdot)$ is an identity element.
+We can simplify the $\oplus$ operation away by definition:
 
 $$
-(e_\cdot, e_\cdot) \diamond (a, b) = (e_\cdot \cdot a, e_\cdot \cdot b) = (a, b) = (a \cdot e_\cdot, a \cdot e_\cdot) = (a, b) \diamond (e_\cdot, e_\cdot)
+(a_1, b_1) \star (a_2, b_2) := (a_1 \cdot a_2, a_1 \cdot b_2)
 $$
 
-The third observation is the first tuple component computes the inclusive scan,
+The second observation is the first tuple component computes the inclusive scan,
 and the second component computes the exclusive scan leading to a scan which
-computes both at the same time
+computes both at the same time:
 
 ```
-def lift_op 't (op: t -> t -> t) (a1: t, _: t) (a2: t, b2: t) : (t, t) =
-  (a1 `op` a2, a1 `op` b2)
+def exclusive_op 't (op: t -> t -> t) (a1: t, _:  t) (a2: t, b2: t) : (t, t) =
+  (a1 `op` a2,  a1 `op` b2)
 
-def gen 't (ne: t) (t: t) : (t, t) =
-  (t, ne)
+def obs 't (ne: t) (t: with_neutral (t, t)) : (t, t) =
+  match t
+  case #neutral -> (ne, ne)
+  case (#val r) -> r
 
 def incexscan [n] 't (op: t -> t -> t) (ne: t) (xs: [n]t) : [n](t, t) =
-  map (gen ne) xs
-  |> scan (lift_op op) (ne, ne)
+  map (\x -> #val (x, ne)) xs
+  |> scan (f_with_neutral (exclusive_op op)) #neutral
+  |> map (obs ne)
 ```
+
+We originally had another idea to avoid the sum type which turned out to not
+work. Instead you may pick an element you know will not appear in the input
+sequence and let a tuple of that be a neutral element.
 
 My advisor also came up with an idea for a use case, where I believe it would be
 very useful, I need it for my parallel-parser generator
