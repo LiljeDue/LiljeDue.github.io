@@ -252,6 +252,7 @@ def parentheses_matches [n] (str: [n]u8): bool =
 
 The insight that we get from solving the parentheses matching problem is that
 there are ways of parallelizing problems that are typically solved using a
-stack. This technique is used in the Alpacc parser generator to perform
-$\text{LL}(k)$ parsing and determine the parent of a node in a preorder
-traversal tree in parallel, both tasks where stacks are usually employed.
+stack. This technique is used in the [Alpacc](https://github.com/diku-dk/alpacc)
+parser generator to perform $\text{LL}(k)$ parsing and determine the parent of a
+node in a preorder traversal tree in parallel, both tasks where stacks are
+usually employed.
