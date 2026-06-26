@@ -76,6 +76,19 @@ segmentParser : Parser (List Segment)
 segmentParser =
     Parser.loop [] segmentHelp
 
+escapeMathUnderscores : String -> String
+escapeMathUnderscores s =
+    String.split "$$" s
+        |> List.indexedMap
+            (\i part ->
+                if modBy 2 i == 1 then
+                    String.replace "_" "\\_" part
+
+                else
+                    part
+            )
+        |> String.join "$$"
+
 
 normalizeMarkdown : String -> String
 normalizeMarkdown markdown =
@@ -92,7 +105,7 @@ normalizeMarkdown markdown =
                         |> String.replace "_" "\\_"
 
                     Paragraph s ->
-                        String.replace "_" "\\_" s
+                        escapeMathUnderscores s
             )
         |> String.join "\n\n"
 

@@ -173,8 +173,7 @@ equal to the current element? This problem has been thoroughly studied in the
 literature.
 
 One such algorithm that is reasonable in practice and quite easy to implement is
-due to [Berkman, Schieber &
-Vishkin](https://www.sciencedirect.com/science/article/pii/S0196677483710187?via%3Dihub).
+due to [Berkman, Schieber & Vishkin](https://doi.org/10.1006/jagm.1993.1018).
 The idea is to compute a reduction tree like you would do with the reduce
 operation using the minimum operation on an array of values. Here, you must
 store the whole tree, which will later be used for querying. First, we compute
