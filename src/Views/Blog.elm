@@ -76,18 +76,70 @@ segmentParser : Parser (List Segment)
 segmentParser =
     Parser.loop [] segmentHelp
 
+type Math
+    = Display String
+    | Inline String
+    | Plain String
+
+
 escapeMathUnderscores : String -> String
 escapeMathUnderscores s =
-    String.split "$$" s
-        |> List.indexedMap
-            (\i part ->
-                if modBy 2 i == 1 then
-                    String.replace "_" "\\_" part
+    Parser.run mathParser s
+        |> Result.map (List.map render >> String.join "")
+        |> Result.withDefault s
 
-                else
-                    part
-            )
-        |> String.join "$$"
+
+render : Math -> String
+render m =
+    case m of
+        Display inner ->
+            "$$" ++ String.replace "_" "\\_" inner ++ "$$"
+
+        Inline inner ->
+            "$" ++ String.replace "_" "\\_" inner ++ "$"
+
+        Plain t ->
+            t
+
+
+mathParser : Parser (List Math)
+mathParser =
+    Parser.loop [] mathHelp
+
+
+mathHelp : List Math -> Parser (Step (List Math) (List Math))
+mathHelp acc =
+    Parser.oneOf
+        [ Parser.end |> Parser.map (\_ -> Done (List.reverse acc))
+        , Parser.backtrackable displayMath |> Parser.map (\m -> Loop (m :: acc))
+        , Parser.backtrackable inlineMath |> Parser.map (\m -> Loop (m :: acc))
+        , plainText |> Parser.map (\t -> Loop (t :: acc))
+        ]
+
+
+displayMath : Parser Math
+displayMath =
+    Parser.succeed Display
+        |. Parser.token "$$"
+        |= Parser.getChompedString (Parser.chompUntil "$$")
+        |. Parser.token "$$"
+
+
+inlineMath : Parser Math
+inlineMath =
+    Parser.succeed Inline
+        |. Parser.token "$"
+        |= Parser.getChompedString (Parser.chompUntil "$")
+        |. Parser.token "$"
+
+
+plainText : Parser Math
+plainText =
+    Parser.getChompedString
+        (Parser.chompIf (\_ -> True)
+            |. Parser.chompWhile (\c -> c /= '$')
+        )
+        |> Parser.map Plain
 
 
 normalizeMarkdown : String -> String
