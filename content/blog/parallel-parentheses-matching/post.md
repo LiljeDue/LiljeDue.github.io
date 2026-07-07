@@ -75,7 +75,7 @@ the total sum and the minimum value of the prefix sum. A possible idea to turn
 the algorithm into a single monoid is to compute the minimum of the predecessor
 and the current minimum sum. You may initially come up with the following:
 
-$$ (v_0, m_0) \oplus (v_1,m_1) = (v_0 + v_1, \min~\{m_0, v_0 + m_1\}) $$
+$$ (v_0, m_0) \oplus (v_1,m_1) = (v_0 + v_1, \min~\lbrace m_0, v_0 + m_1\rbrace) $$
 
 Here, we use an extended set of integers with a largest value $\infty = a +
 \infty$ to get a neutral element $(0, \infty)$. This does form a monoid, and the
