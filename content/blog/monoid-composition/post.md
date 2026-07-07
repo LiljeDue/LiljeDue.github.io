@@ -364,3 +364,12 @@ few places. It also seems to be a good combinator for constructing new monoids
 from monoids. Sadly, I had no deeper insight into how the last part of the
 maximum subarray sum monoid comes to light, but hopefully the explanation still
 helps give an insight into why the monoid actually works.
+
+## Notes
+
+This is the same approach has how Blelloch solves recurrence relation in his
+paper ["Prefix Sums and Their
+Applications"](https://www.cs.cmu.edu/~guyb/papers/Ble93.pdf) just with a
+different perspective. It is also the same approach as performing affine
+function composition, like done when performing [parallel tree
+contraction](https://en.wikipedia.org/wiki/Tree_contraction).
