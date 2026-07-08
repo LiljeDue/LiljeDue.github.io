@@ -61,8 +61,17 @@ $$
 \end{aligned}
 $$
 
-The big question is now what operation is $\odot$ 
+The wish we now has is that this from a semiring:
+
+
 
 $$
 (a_1 \odot a_2, \text{if}~\pi_1(b_2)~\text{then}~b_2~\text{else}~a_1 \odot b_2)
 $$
+
+$$
+(a_1 \odot a_2, \text{if}~\pi_1(b_2)~\text{then}~b_2~\text{else}~a_1 \odot b_2)
+$$
+
+The big question is now what operation is $\odot$, it should compute the actual
+scan and it should propagate the flag from $a_j$ all the way through to 
