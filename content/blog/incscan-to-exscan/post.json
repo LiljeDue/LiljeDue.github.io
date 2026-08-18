@@ -1,0 +1,6 @@
+{
+  "title": "Turning an Inclusive Scan into an Exclusive Scan",
+  "date": "2026-06-15",
+  "author": "Due",
+  "description": "Using monoid composition it is possible to turn an inclusive scan into an exclusive scan."
+}

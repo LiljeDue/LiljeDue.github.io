@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Due's Website</title>
+    <link rel="stylesheet" href="/style.css">
+    <script>
+        MathJax = {
+            tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            packages: {'[+]': ['ams']}
+            },
+            loader: {
+            load: ['[tex]/ams']
+            }
+        };
+    </script>
+    <!-- Include MathJax for LaTeX rendering -->
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <!-- Load content definitions before Elm -->
+    <script src='/content.js'></script>
+</head>
+<body>
+    <div id="elm-app"></div>
+    <script src="/elm.js"></script>
+    <script>
+        // Use local URL when debugging (localhost), otherwise use GitHub URL
+        var baseContentUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? "http://localhost:8000"
+            : "https://raw.githubusercontent.com/LiljeDue/LiljeDue.github.io/refs/heads/main/content";
+        
+        console.log("Base Content URL:", baseContentUrl);
+
+        var app = Elm.Main.init({
+            node: document.getElementById('elm-app'),
+            flags: {
+                baseContentUrl: baseContentUrl,
+                content:  content // This should be defined in content.js
+            }
+        });
+        
+        app.ports.renderMathJax.subscribe(function() {
+            // Wait a tiny bit to ensure the DOM is updated
+            setTimeout(function() {
+                if (typeof MathJax === 'undefined') {
+                    console.error('MathJax is not loaded. Please include the MathJax script in your HTML.');
+                    return;
+                }
+                
+                if (MathJax.version && parseInt(MathJax.version.split('.')[0]) >= 3) {
+                    var elements = document.getElementsByClassName('markdown-content');
+                    MathJax.typeset(elements);
+                } else {
+                    console.error('Unsupported MathJax version. Please use MathJax v3.');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
