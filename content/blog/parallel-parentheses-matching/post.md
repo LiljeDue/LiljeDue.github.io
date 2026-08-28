@@ -256,3 +256,19 @@ stack. This technique is used in the [Alpacc](https://github.com/diku-dk/alpacc)
 parser generator to perform $\text{LL}(k)$ parsing and determine the parent of a
 node in a preorder traversal tree in parallel, both tasks where stacks are
 usually employed.
+
+## Notes
+
+It was also pointed out by Oleg Kiselyov there is a simpler approach to
+paarenthesis matching as a monoid.
+
+```
+let paren_monoid =
+  {zero = (0,0);
+   op = fun (xc,xo) (yc,yo) ->
+     if xo >= yc then (xc,xo-yc+yo)
+     else (xc+yc-xo,yo)}
+```
+
+I do not have a good explanation of why it works but it is good to know it
+exists.

@@ -373,3 +373,9 @@ Applications"](https://www.cs.cmu.edu/~guyb/papers/Ble93.pdf) just with a
 different perspective. It is also the same approach as performing affine
 function composition, like done when performing [parallel tree
 contraction](https://en.wikipedia.org/wiki/Tree_contraction).
+
+It was also pointed out by Oleg Kiselyov both of these rules are specialization
+of semi-direct monoid products which I did not know about at the time of
+writing. I still hope even though there is a more general approach then this
+blog post still helps in the ability for people to understand when you can
+compose monoids.
