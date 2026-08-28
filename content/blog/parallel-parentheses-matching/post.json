@@ -1,0 +1,6 @@
+{
+  "title": "Parallel Stacks & Parentheses Matching",
+  "date": "2026-06-02",
+  "author": "Due",
+  "description": "The parallel parentheses matching problem can be parallized in different manners depending on the use case and is a good example of how stacks map to parallel hardware."
+}
