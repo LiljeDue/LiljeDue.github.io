@@ -4,12 +4,13 @@ import Blog exposing (..)
 import Date
 import Dict
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)
 import Markdown exposing (toHtml)
 import Model exposing (..)
 import Parser exposing (Parser, Step(..), (|.), (|=))
 import Time exposing (Month(..))
+import Html.Attributes exposing (src)
 
 
 viewPage : Model -> Html Msg -> Html Msg
@@ -189,10 +190,13 @@ viewBlogPosts model =
     in
     viewPage model
         (div []
-            [ h1 [] [ text "Blog" ]
-            , p []
-                [ a [ Html.Attributes.href (model.baseContentUrl ++ "/feed.xml") ] [ text "Subscribe via Atom/RSS" ]
-                ]
+            [ h1 [ class "blog-heading" ]
+              [ text "Blog"
+              , a [ href "content/feed.xml", target "_blank", class "links-link atom-link" ]
+                  [ img [ src "content/icons/atom.svg", alt "Atom", class "atom-icon" ] []
+                  , span [ class "atom-label" ] [ text "Atom" ]
+                  ]
+              ]
             , div [] blogPosts
             ]
         )

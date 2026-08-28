@@ -126,3 +126,26 @@ body {
   height: 60px;
   padding: 5px;
 }
+
+.blog-heading {
+  display: flex;
+  align-items: center;
+}
+
+.atom-link {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #666;
+}
+
+.atom-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.atom-label {
+  font-size: 0.6rem;
+}
