@@ -13,3 +13,5 @@ partition p (x:xs)
   | otherwise = (yes, x:no)
   where (yes, no) = partition p xs
 ```
+
+In the language futhark we too can express 
