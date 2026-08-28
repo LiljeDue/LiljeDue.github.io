@@ -132,7 +132,7 @@ body {
   align-items: center;
 }
 
-.atom-link {
+.atom-rss-link {
   margin-left: auto;
   display: flex;
   flex-direction: column;
@@ -141,11 +141,12 @@ body {
   color: #666;
 }
 
-.atom-icon {
-  width: 24px;
-  height: 24px;
+.atom-rss-icon {
+  width: 48px;
+  height: 48px;
 }
 
-.atom-label {
-  font-size: 0.6rem;
+.atom-rss-label {
+  font-size: 0.7rem;
+  color: #ff8c00;
 }

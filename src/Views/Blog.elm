@@ -192,9 +192,9 @@ viewBlogPosts model =
         (div []
             [ h1 [ class "blog-heading" ]
               [ text "Blog"
-              , a [ href "content/feed.xml", target "_blank", class "links-link atom-link" ]
-                  [ img [ src "content/icons/atom.svg", alt "Atom", class "atom-icon" ] []
-                  , span [ class "atom-label" ] [ text "Atom" ]
+              , a [ href "content/feed.xml", target "_blank", class "links-link atom-rss-link" ]
+                  [ img [ src "content/icons/atom_rss.svg", alt "Atom/RSS", class "atom-rss-icon" ] []
+                  , span [ class "atom-rss-label" ] [ text "Atom/RSS" ]
                   ]
               ]
             , div [] blogPosts
