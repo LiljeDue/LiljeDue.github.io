@@ -1,5 +1,5 @@
 {
-  "title": "Parallel Partition",
+  "title": "What Is The Best Parallel Partition",
   "date": "2026-08-31",
   "author": "Due",
   "description": "How to implement partition efficiently on a GPU in Futhark, and why there is no single best approach."
