@@ -57,10 +57,10 @@ def partition [n] 'a (p: a -> bool)
   let to_index_f f (_, o) = if f then -1i64 else o - 1i64
   let t_flags = map p as
   let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
-  let t_res = scatter (#[scratch] copy as) 
-                      (map2 to_index_t t_flags offsets) as
-  let f_res = scatter (#[scratch] copy as)
-                      (map2 to_index_f t_flags offsets) as
+  let t_idxs = map2 to_index_t t_flags offsets
+  let f_idxs = map2 to_index_f t_flags offsets
+  let t_res = scatter (#[scratch] copy as) t_idxs as
+  let f_res = scatter (#[scratch] copy as) f_idxs as
   let (k, _) = if n == 0 then (0, 0) else last offsets
   in (take k t_res, take (n - k) f_res)
 ```
@@ -84,42 +84,40 @@ The body then ends with `let (k, _) = scan_last offsets`. As a bonus this also
 removes the need to special-case the empty input: scattering no indices leaves
 the `(0, 0)` seed untouched.
 
-Another variant is to have the caller pass in the destination arrays, with the
-constraint that they are both of size `n`. We can then also pass two functions
-to map each element to a different type.
+Another variant is to have the caller pass two functions to map each element to
+a different type.
 
 ```
 def partition [n] 'a 'b 'c
-              (t_dest: *[n]b) (f_dest: *[n]c)
               (g: a -> b) (h: a -> c)
-              (p: a -> bool) (as: [n]a) : ([n]b, [n]c) =
+              (p: a -> bool) (as: [n]a) : ?[k].([k]b, [n - k]c) =
   ...
 ```
 
-The rationale behind this is when we truncate the array in the previous design
-then we are no longer able to map the elements of the array and have it fused
-away into the scatter that puts the elements in their correct position. So in
-the new design we must map the function over each element of the array before
+The rationale behind this is that in the previous design any mapping happens at
+the call site, after the truncation, so it cannot be fused into the scatter that
+puts the elements in their correct position. By taking `g` and `h` as arguments
+we move the mapping inside, before the scatter, where it does fuse. So in the
+new design we must map the function over each element of the array before
 scattering it, where we sometimes use the scratch attribute to avoid the
 computation.
 
 ```
   ...
   let t_res =
-    scatter t_dest t_idxs
+    scatter (#[scratch] map g as) t_idxs
             (map2 (\f a -> if f then g a else #[scratch] g a) t_flags as)
   let f_res =
-    scatter f_dest f_idxs
+    scatter (#[scratch] map h as) f_idxs
             (map2 (\f a -> if f then #[scratch] h a else h a) t_flags as)
   ...
-  in (t_res, f_res)
 ```
 
 Using this partition is awkwardly expressed but it is nice that you get the
-ability to permute into different arrays and map the elements before they get
-put in their correct position while the partition is a single kernel. This makes
-it well suited for cases where you want to simultaneously partition and
-transform elements into a different type in a single pass.
+ability to map the elements before they get put in their correct position while
+the partition is a single kernel. This makes it well suited for cases where you
+want to simultaneously partition and transform elements into a different type in
+a single pass.
 
 However, both of these designs allocate `2n` elements for the destination
 arrays, when ideally we only need `n`. The caveat here is this constraint does
@@ -236,13 +234,13 @@ In summary, the right partition depends on your needs. The single-array
 unordered version is the most memory-efficient, doing only `n` reads and writes,
 and is a good fit when order does not matter or can be corrected cheaply with
 `unreverse`. When order is required, the `3n` single-kernel version avoids the
-reversal problem at the cost of reading the input twice. The
-two-destination-array version is the most general, allowing you to map elements
-to different types in a single kernel, at the cost of allocating `2n` elements.
+reversal problem at the cost of reading the input twice. The mapping version
+version is the most general, allowing you to map elements to different types in
+a single kernel, at the cost of allocating `2n` elements.
 
 ```
 Variant                              R/W   K  Mem  Ord  MapType
-Two destination arrays               2n    1  2n   yes  Diff
+Mapping version                      2n    1  2n   yes  Diff
 Single array, meet in middle         2n    1  n    no   Same
 Single array, reversed second pass   3n    1  n    yes  Same
 Reduce, then ordered scatter         3n    2  n    yes  Same
