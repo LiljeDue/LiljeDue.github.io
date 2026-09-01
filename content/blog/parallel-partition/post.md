@@ -28,8 +28,20 @@ negated value, this tells us which elements we want to move to the first array
 and the second array. Furthermore, if we convert `true` to `1` and `false` to
 `0` then computing two inclusive prefix sums of these tupled integers (a scan
 with tuple-addition) then we get the position of where true elements belong and
-where false elements belong. We have to do a slight change to the indices, if
-they should not be written to the array we use the `-1` index to discard it and
+where false elements belong.
+
+Every implementation in this post needs those tupled offsets, so we define them
+once up front and reuse them throughout.
+
+```
+def add2 (a0, b0) (a1, b1) = (a0 + a1, b0 + b1)
+
+def offsets_of [n] (t_flags: [n]bool) (f_flags: [n]bool) =
+  scan add2 (0, 0) (map2 (\x y -> (i64.bool x, i64.bool y)) t_flags f_flags)
+```
+
+With the offsets in hand we have to do a slight change to the indices, if they
+should not be written to the array we use the `-1` index to discard it and
 subtract one from elements being written to get the index position of the
 element. Using `scatter` we can give it a destination array, the indices of each
 element and the elements. Lastly, we get how many elements are in the true
@@ -39,28 +51,13 @@ is filled with junk, which is unsafe but we know how many and where we write
 elements so `partition` ends up being perfectly safe.
 
 ```
-def partition [n] 'a
-              (p: a -> bool)
-              (as: [n]a) : ?[k].([k]a, [n - k]a) =
+def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
   let to_index_t f (o, _) = if f then o - 1i64 else -1i64
   let to_index_f f (_, o) = if f then -1i64 else o - 1i64
-  let add2 (a0, b0) (a1, b1) = (a0 + a1, b0 + b1)
   let t_flags = map p as
-  let f_flags = map (\x -> !x) t_flags
-  let flags =
-    map2 (\x y ->
-            ( i64.bool x
-            , i64.bool y
-            ))
-         t_flags
-         f_flags
-  let offsets = scan add2 (0, 0) flags
-  let t_idxs = map2 to_index_t t_flags offsets
-  let f_idxs = map2 to_index_f t_flags offsets
-  let t_dest = #[scratch] copy as
-  let f_dest = #[scratch] copy as
-  let t_res = scatter t_dest t_idxs as
-  let f_res = scatter f_dest f_idxs as
+  let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
+  let t_res = scatter (#[scratch] copy as) (map2 to_index_t t_flags offsets) as
+  let f_res = scatter (#[scratch] copy as) (map2 to_index_f t_flags offsets) as
   let (k, _) = if n == 0 then (0, 0) else last offsets
   in (take k t_res, take (n - k) f_res)
 ```
@@ -70,17 +67,19 @@ does have the mistake which is it will write all offsets to global memory. The
 reason for this is Futhark does not have an optimization for when just taking
 the last element of an array like `offsets`. Because Futhark cannot fuse away
 the scan when only the last element is used, we must extract it explicitly with
-a scatter to avoid writing the full offsets array to global memory.
+a scatter to avoid writing the full offsets array to global memory. This is
+worth naming, since every implementation from here on needs it.
 
 ```
-  ...
-  let lst =
-    scatter [(0, 0)]
-            (map (\i -> if i != n - 1 then -1 else 0) (iota n))
-            offsets
-  let (k, _) = lst[0]
-  ...
+def scan_last [n] (offsets: [n](i64, i64)) =
+  (scatter [(0, 0)]
+           (map (\i -> if i != n - 1 then -1 else 0) (iota n))
+           offsets)[0]
 ```
+
+The body then ends with `let (k, _) = scan_last offsets`. As a bonus this also
+removes the need to special-case the empty input: scattering no indices leaves
+the `(0, 0)` seed untouched.
 
 Another variant is to have the caller pass in the destination arrays, with the
 constraint that they are both of size `n`. We can then also pass two functions
@@ -88,12 +87,9 @@ to map each element to a different type.
 
 ```
 def partition [n] 'a 'b 'c
-              (t_dest: *[n]b)
-              (f_dest: *[n]c)
-              (g: a -> b)
-              (h: a -> c)
-              (p: a -> bool)
-              (as: [n]a) : ([n]a, [n]a) =
+              (t_dest: *[n]b) (f_dest: *[n]c)
+              (g: a -> b) (h: a -> c)
+              (p: a -> bool) (as: [n]a) : ([n]b, [n]c) =
   ...
 ```
 
@@ -107,17 +103,11 @@ computation.
 ```
   ...
   let t_res =
-    scatter t_dest
-            t_idxs
-            (map2 (\f a -> if f then g a else #[scratch] g a)
-                  t_flags
-                  as)
+    scatter t_dest t_idxs
+            (map2 (\f a -> if f then g a else #[scratch] g a) t_flags as)
   let f_res =
-    scatter f_dest
-            f_idxs
-            (map2 (\f a -> if f then #[scratch] h a else h a)
-                  t_flags
-                  as)
+    scatter f_dest f_idxs
+            (map2 (\f a -> if f then #[scratch] h a else h a) t_flags as)
   ...
   in (t_res, f_res)
 ```
@@ -133,44 +123,20 @@ arrays, when ideally we only need `n`. The caveat here is this constraint does
 make it so we cannot map the partitioned value to different types before writing
 them at their destination. But with this added constraint we can reduce the
 memory usage by writing true elements to the start of a single destination array
-and false elements to the end, letting them meet in the middle.
+and false elements to the end, letting them meet in the middle. The whole change
+lives in `to_index`:
 
 ```
-  ...
+def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
   let to_index f (o0, o1) = if f then o0 - 1i64 else n - o1
-  ...
-```
-
-At the end we get an implementation of partition like so:
-
-```
-def partition [n] 'a
-              (p: a -> bool)
-              (as: [n]a) : ?[k].([k]a, [n - k]a) =
-  let to_index f (o0, o1) = if f then o0 - 1i64 else n - o1
-  let add2 (a0, b0) (a1, b1) = (a0 + a1, b0 + b1)
   let t_flags = map p as
-  let f_flags = map (\x -> !x) t_flags
-  let flags =
-    map2 (\x y ->
-            ( i64.bool x
-            , i64.bool y
-            ))
-         t_flags
-         f_flags
-  let offsets = scan add2 (0, 0) flags
-  let idxs = map2 to_index t_flags offsets
-  let dest = #[scratch] copy as
-  let res = scatter dest idxs as
-  let lst =
-    scatter [(0, 0)]
-            (map (\i -> if i != n - 1 then -1 else 0) (iota n))
-            offsets
-  let (k, _) = lst[0]
+  let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
+  let res = scatter (#[scratch] copy as) (map2 to_index t_flags offsets) as
+  let (k, _) = scan_last offsets
   in (take k res, drop k res)
 ```
 
-It is nice implementation in the sense that we only read the input once and
+It is a nice implementation in the sense that we only read the input once and
 write it once, and it is a streamable implementation so we do not need to know
 the full input from the beginning, we would just need to know the size of it.
 This is the same implementation (structurally) that is used in CUB, a library by
@@ -178,21 +144,18 @@ NVIDIA with highly optimized GPU primitives written in CUDA. A problem with this
 implementation is that you do not get the false elements in the relative order,
 you get them in reverse relative order. This is still a valid partition, you do
 get the elements split up in true and false elements but they end up being
-unordered. One might expect that an unordered partition is less usefule, but we
+unordered. One might expect that an unordered partition is less useful, but we
 can work around the reversed false elements with an auxiliary function
 `unreverse`. This ends up being a good trade in certain cases since it only adds
 a cheap index transformation, while the underlying partition benefits from fewer
-memory accesses. We can simply create a auxiliary function which reads all
+memory accesses. We can simply create an auxiliary function which reads all
 elements in correct order till we get to false elements then and read from the
 array in reverse.
 
 ```
-def unreverse [n] 't
-              (m: i64)
-              (xs: [n]t) : [n]t =
+def unreverse [n] 't (m: i64) (xs: [n]t) : [n]t =
   let is = tabulate n (\i -> if i < m then i else n - 1 - i + m)
   in map (\i -> xs[i]) is
-
 ```
 
 This `unreverse` together with the unordered `partition` can be used for use
@@ -201,10 +164,8 @@ start by defining the computation of a single step.
 
 ```
 def radix_sort_step [n] 't
-                    (m: i64)
-                    (xs: [n]t)
-                    (get_bit: i32 -> t -> i32)
-                    (digit_n: i32) : (i64, [n]t) =
+                    (m: i64) (xs: [n]t)
+                    (get_bit: i32 -> t -> i32) (digit_n: i32) : (i64, [n]t) =
   let (zeros, ones) = partition (\x -> get_bit digit_n x == 0) (unreverse m xs)
   in (length zeros, zeros ++ ones :> [n]t)
 ```
@@ -215,12 +176,9 @@ these elements.
 
 ```
 def radix_sort [n] 't
-               (num_bits: i32)
-               (get_bit: i32 -> t -> i32)
-               (xs: [n]t) : [n]t =
-  let m = n
+               (num_bits: i32) (get_bit: i32 -> t -> i32) (xs: [n]t) : [n]t =
   let (m, xs) =
-    loop (m, xs) for i < num_bits do
+    loop (m, xs) = (n, xs) for i < num_bits do
       radix_sort_step m xs get_bit i
   in unreverse m xs
 ```
@@ -234,37 +192,20 @@ the false elements in reverse, their offsets count down from the end of the
 destination array. This means the false element that belongs last gets written
 to the last position, and so on, giving us false elements in correct relative
 order. The cost is that we must read the input twice, once forward for true
-elements and once in reverse for false elements. The implementation ends up
-being a bit annoying and is found in Futhark's prelude.
+elements and once in reverse for false elements. Compared to the unordered
+version the only real difference is that the false flags come from `rev_as`.
 
 ```
-def partition [n] 'a
-              (p: a -> bool)
-              (as: [n]a) : ?[k].([k]a, [n - k]a) =
-  let to_index_t f (o0, _o1) = if f then o0 - 1 else -1
-  let to_index_f f (_o0, o1) = if f then n - o1 else -1
-  let add2 (a0, b0) (a1, b1) = (a0 + a1, b0 + b1)
+def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
+  let to_index_t f (o0, _) = if f then o0 - 1 else -1
+  let to_index_f f (_, o1) = if f then n - o1 else -1
   let t_flags = map p as
   let rev_as = reverse as
-  let f_flags = map (\x -> !x) (map p rev_as)
-  let flags =
-    map2 (\x y ->
-            ( i64.bool x
-            , i64.bool y
-            ))
-         t_flags
-         f_flags
-  let offsets = scan add2 (0, 0) flags
-  let idxs_t = map2 to_index_t t_flags offsets
-  let idxs_f = map2 to_index_f f_flags offsets
-  let idxs = idxs_t ++ idxs_f
-  let dest = #[scratch] copy as
-  let res = scatter dest idxs (as ++ rev_as)
-  let lst =
-    scatter [(0, 0)]
-            (map (\j -> if j == n - 1 then 0 else -1) (0..1..<n))
-            offsets
-  let (k, _) = lst[0]
+  let f_flags = map (\x -> !(p x)) rev_as
+  let offsets = offsets_of t_flags f_flags
+  let idxs = map2 to_index_t t_flags offsets ++ map2 to_index_f f_flags offsets
+  let res = scatter (#[scratch] copy as) idxs (as ++ rev_as)
+  let (k, _) = scan_last offsets
   in (take k res, drop k res)
 ```
 
@@ -287,3 +228,11 @@ and is a good fit when order does not matter or can be corrected cheaply with
 reversal problem at the cost of reading the input twice. The
 two-destination-array version is the most general, allowing you to map elements
 to different types in a single kernel, at the cost of allocating `2n` elements.
+
+```
+Variant                              R/W   K  Mem  Ord  MapType
+Two destination arrays               2n    1  2n   yes  Diff
+Single array, meet in middle         2n    1  n    no   Same
+Single array, reversed second pass   3n    1  n    yes  Same
+Reduce, then ordered scatter         3n    2  n    yes  Same
+```
