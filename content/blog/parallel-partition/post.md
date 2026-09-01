@@ -57,10 +57,10 @@ def partition [n] 'a (p: a -> bool)
   let to_index_f f (_, o) = if f then -1i64 else o - 1i64
   let t_flags = map p as
   let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
-  let t_res =
-    scatter (#[scratch] copy as) (map2 to_index_t t_flags offsets) as
-  let f_res =
-    scatter (#[scratch] copy as) (map2 to_index_f t_flags offsets) as
+  let t_res = scatter (#[scratch] copy as) 
+                      (map2 to_index_t t_flags offsets) as
+  let f_res = scatter (#[scratch] copy as)
+                      (map2 to_index_f t_flags offsets) as
   let (k, _) = if n == 0 then (0, 0) else last offsets
   in (take k t_res, take (n - k) f_res)
 ```
@@ -135,7 +135,8 @@ def partition [n] 'a (p: a -> bool)
   let to_index f (o0, o1) = if f then o0 - 1i64 else n - o1
   let t_flags = map p as
   let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
-  let res = scatter (#[scratch] copy as) (map2 to_index t_flags offsets) as
+  let res = scatter (#[scratch] copy as)
+                    (map2 to_index t_flags offsets) as
   let (k, _) = scan_last offsets
   in (take k res, drop k res)
 ```
