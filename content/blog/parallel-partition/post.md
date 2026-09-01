@@ -51,13 +51,16 @@ is filled with junk, which is unsafe but we know how many and where we write
 elements so `partition` ends up being perfectly safe.
 
 ```
-def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
+def partition [n] 'a (p: a -> bool)
+                     (as: [n]a) : ?[k].([k]a, [n - k]a) =
   let to_index_t f (o, _) = if f then o - 1i64 else -1i64
   let to_index_f f (_, o) = if f then -1i64 else o - 1i64
   let t_flags = map p as
   let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
-  let t_res = scatter (#[scratch] copy as) (map2 to_index_t t_flags offsets) as
-  let f_res = scatter (#[scratch] copy as) (map2 to_index_f t_flags offsets) as
+  let t_res =
+    scatter (#[scratch] copy as) (map2 to_index_t t_flags offsets) as
+  let f_res =
+    scatter (#[scratch] copy as) (map2 to_index_f t_flags offsets) as
   let (k, _) = if n == 0 then (0, 0) else last offsets
   in (take k t_res, take (n - k) f_res)
 ```
@@ -127,7 +130,8 @@ and false elements to the end, letting them meet in the middle. The whole change
 lives in `to_index`:
 
 ```
-def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
+def partition [n] 'a (p: a -> bool) 
+                     (as: [n]a) : ?[k].([k]a, [n - k]a) =
   let to_index f (o0, o1) = if f then o0 - 1i64 else n - o1
   let t_flags = map p as
   let offsets = offsets_of t_flags (map (\x -> !x) t_flags)
@@ -165,7 +169,8 @@ start by defining the computation of a single step.
 ```
 def radix_sort_step [n] 't
                     (m: i64) (xs: [n]t)
-                    (get_bit: i32 -> t -> i32) (digit_n: i32) : (i64, [n]t) =
+                    (get_bit: i32 -> t -> i32)
+                    (digit_n: i32) : (i64, [n]t) =
   let (zeros, ones) = partition (\x -> get_bit digit_n x == 0) (unreverse m xs)
   in (length zeros, zeros ++ ones :> [n]t)
 ```
@@ -176,7 +181,9 @@ these elements.
 
 ```
 def radix_sort [n] 't
-               (num_bits: i32) (get_bit: i32 -> t -> i32) (xs: [n]t) : [n]t =
+               (num_bits: i32)
+               (get_bit: i32 -> t -> i32)
+               (xs: [n]t) : [n]t =
   let (m, xs) =
     loop (m, xs) = (n, xs) for i < num_bits do
       radix_sort_step m xs get_bit i
@@ -196,14 +203,17 @@ elements and once in reverse for false elements. Compared to the unordered
 version the only real difference is that the false flags come from `rev_as`.
 
 ```
-def partition [n] 'a (p: a -> bool) (as: [n]a) : ?[k].([k]a, [n - k]a) =
+def partition [n] 'a (p: a -> bool)
+                     (as: [n]a) : ?[k].([k]a, [n - k]a) =
   let to_index_t f (o0, _) = if f then o0 - 1 else -1
   let to_index_f f (_, o1) = if f then n - o1 else -1
   let t_flags = map p as
   let rev_as = reverse as
   let f_flags = map (\x -> !(p x)) rev_as
   let offsets = offsets_of t_flags f_flags
-  let idxs = map2 to_index_t t_flags offsets ++ map2 to_index_f f_flags offsets
+  let idxs =
+    map2 to_index_t t_flags offsets ++
+    map2 to_index_f f_flags offsets
   let res = scatter (#[scratch] copy as) idxs (as ++ rev_as)
   let (k, _) = scan_last offsets
   in (take k res, drop k res)
