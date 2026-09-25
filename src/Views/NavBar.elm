@@ -31,6 +31,6 @@ viewNavBar currentPage =
         [ ul [ class "navbar-items" ]
             [ viewNavBarItem currentPage Home "Home" "/"
             , viewNavBarItem currentPage Blogs "Blog" "/blog"
-            , viewNavBarItem currentPage Projects "Projects" "/projects"
+            , viewNavBarItem currentPage Supervison "Supervison" "/Supervison"
             ]
         ]

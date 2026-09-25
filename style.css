@@ -55,6 +55,13 @@ body {
   overflow-x: auto;
 }
 
+.loading-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
 .markdown-content h1 {
   color: #2c3e50;
   border-bottom: 1px solid #eee;
@@ -75,6 +82,46 @@ body {
 .error-display {
   color: #e74c3c;
   background-color: #fadbd8;
+}
+
+.loading-spinner-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 5px solid rgba(255, 0, 242, 0.15);
+  border-top-color: #ff00f2;
+  animation: spin 0.9s linear infinite, pulse-glow 1.5s ease-in-out infinite;
+}
+
+.loading-text {
+  margin-top: 20px;
+  color: #aaa;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: fade-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 0, 242, 0.2); }
+  50%       { box-shadow: 0 0 18px 6px rgba(255, 0, 242, 0.55); }
+}
+
+@keyframes fade-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
 }
 
 .mjx-chtml {
@@ -149,4 +196,83 @@ body {
 .atom-rss-label {
   font-size: 0.7rem;
   color: #ff8c00;
+}
+
+.project-card {
+  background-color: #fff;
+  padding: 10px 15px;
+  margin: 20px 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 0, 242, 0.2);
+  transform: translateY(-2px);
+}
+
+.project-card h2 {
+  margin: 0 0 0.3em 0;
+}
+
+.project-card p {
+  margin: 0;
+  color: #555;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fade-in 0.15s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 36px;
+  max-width: 720px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  animation: slide-up 0.2s ease;
+}
+
+.modal-card h2 {
+  margin-top: 0;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }

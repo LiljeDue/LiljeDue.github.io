@@ -1,0 +1,4 @@
+{
+  "title": "Implement data-parallel lexers in ISPC",
+  "description": "Generate data-parallel lexers targeting ISPC, a C-like language for SIMD CPU code."
+}

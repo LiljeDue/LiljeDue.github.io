@@ -17,7 +17,12 @@ viewPage : Model -> Html Msg -> Html Msg
 viewPage model page =
     case model.status of
         Loading ->
-            div [ class "loading-display" ] [ h1 [] [ text "Loading blog post..." ] ]
+            div [ class "loading-display" ]
+                [ div [ class "loading-spinner-wrapper" ]
+                    [ div [ class "loading-spinner" ] []
+                    , p [ class "loading-text" ] [ text "Loading..." ]
+                    ]
+                ]
 
         Success ->
             div [ class "content-display" ]
