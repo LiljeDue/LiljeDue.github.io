@@ -149,13 +149,11 @@ trees, where several nodes can share a successor.
 We can view a tree as a collection of lists: following successors from any node
 gives a single path to the root, and paths may merge with each other along the
 way. In each step, a node only reads the rank and successor of its own
-successor, which lies further up its path. So everything a node ever reads lies
-on its path to the root, and it computes exactly the rank it would get from
-running Wyllie’s algorithm on that path alone. Where two paths merge, the nodes
-they share are only computed once. That is safe because a node’s rank depends
-only on its own path, so it is the same no matter which list we view it as part
-of. The lists therefore agree on all shared nodes, and every node ends up with
-its distance to the root, its depth.
+successor, which lies further up its path. So a node never looks outside its own
+path, and it computes exactly what Wyllie's algorithm would compute on that path
+if it were a list on its own. Where paths merge, several nodes read the same
+entry, but reading is harmless: they all see the same values. Every node
+therefore ends up with its distance to the root, its depth.
 
 We can generalize this operation to any associative operator. The result is
 called a rootfix: every node receives the combination of the values of its
@@ -339,8 +337,8 @@ def ileaffix 'a [n] (op: a -> a -> a) (inv: a -> a) (ne: a) (tree: vtree [n] a) 
   map2 op tree.values (leaffix op inv ne tree)
 ```
 
-Like rootfix, this takes $O(n)$ work and $O(\log n)$ span
-and requires the operator to form a group.
+Like rootfix, this takes $O(n)$ work and $O(\log n)$ span and requires the
+operator to form a group.
 
 You can convert between the two representations, but it is a bit more involved
 and would take more time to explain in depth. To convert a pointer `tree` to a
