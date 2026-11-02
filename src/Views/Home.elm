@@ -25,7 +25,7 @@ troels =
 viewHome : Model -> Html Msg
 viewHome _ =
     div [ class "content-display" ]
-        [ h1 [] [ text "Due's Website" ]
+        [ h1 [] [ text "Lilje Due's Website" ]
         , p []
             [ text "I am Lilje Henrich Due, a PhD student in the "
             , pltc

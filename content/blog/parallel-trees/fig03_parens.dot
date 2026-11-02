@@ -1,0 +1,44 @@
+// The example tree as balanced parentheses: "(" is written when the
+// depth-first walk goes down an edge (left side), ")" when it comes back up
+// (right side). The edge into the root makes the root a pair as well.
+// Positions are fixed so each pair of parentheses sits opposite each other,
+// at the same distance on either side of the middle of its edge.
+// The subscript is the position of the parenthesis in the sequence, and the
+// number in brackets is the node's index in the parent-pointer array.
+digraph {
+  layout=neato; splines=line;
+  node [shape=circle, width=0.6, fixedsize=true, fontname="Helvetica"];
+  edge [arrowhead=none];
+
+  top [shape=point, style=invis, pos="1.3,2.95!"];
+  n10 [label=<10<BR/><FONT POINT-SIZE="9">[0]</FONT>>, pos="1.3,2!"];
+  n20 [label=<20<BR/><FONT POINT-SIZE="9">[1]</FONT>>, pos="0,1!"];
+  n30 [label=<30<BR/><FONT POINT-SIZE="9">[2]</FONT>>, pos="1.3,1!"];
+  n40 [label=<40<BR/><FONT POINT-SIZE="9">[3]</FONT>>, pos="2.6,1!"];
+  n50 [label=<50<BR/><FONT POINT-SIZE="9">[4]</FONT>>, pos="0,0!"];
+  n60 [label=<60<BR/><FONT POINT-SIZE="9">[5]</FONT>>, pos="1.3,0!"];
+  n70 [label=<70<BR/><FONT POINT-SIZE="9">[6]</FONT>>, pos="2.6,0!"];
+
+  node [shape=plaintext, fixedsize=false, width=0, height=0, margin=0, fontsize=16];
+  top -> n10;
+  top_n10_open [label=<(<SUB><FONT POINT-SIZE="10">0</FONT></SUB>>, pos="1.08,2.48!"];
+  top_n10_close [label=<)<SUB><FONT POINT-SIZE="10">13</FONT></SUB>>, pos="1.52,2.48!"];
+  n10 -> n20;
+  n10_n20_open [label=<(<SUB><FONT POINT-SIZE="10">1</FONT></SUB>>, pos="0.52,1.67!"];
+  n10_n20_close [label=<)<SUB><FONT POINT-SIZE="10">2</FONT></SUB>>, pos="0.78,1.33!"];
+  n10 -> n30;
+  n10_n30_open [label=<(<SUB><FONT POINT-SIZE="10">3</FONT></SUB>>, pos="1.08,1.50!"];
+  n10_n30_close [label=<)<SUB><FONT POINT-SIZE="10">10</FONT></SUB>>, pos="1.52,1.50!"];
+  n10 -> n40;
+  n10_n40_open [label=<(<SUB><FONT POINT-SIZE="10">11</FONT></SUB>>, pos="1.82,1.33!"];
+  n10_n40_close [label=<)<SUB><FONT POINT-SIZE="10">12</FONT></SUB>>, pos="2.08,1.67!"];
+  n30 -> n50;
+  n30_n50_open [label=<(<SUB><FONT POINT-SIZE="10">4</FONT></SUB>>, pos="0.52,0.67!"];
+  n30_n50_close [label=<)<SUB><FONT POINT-SIZE="10">5</FONT></SUB>>, pos="0.78,0.33!"];
+  n30 -> n60;
+  n30_n60_open [label=<(<SUB><FONT POINT-SIZE="10">6</FONT></SUB>>, pos="1.08,0.50!"];
+  n30_n60_close [label=<)<SUB><FONT POINT-SIZE="10">7</FONT></SUB>>, pos="1.52,0.50!"];
+  n30 -> n70;
+  n30_n70_open [label=<(<SUB><FONT POINT-SIZE="10">8</FONT></SUB>>, pos="1.82,0.33!"];
+  n30_n70_close [label=<)<SUB><FONT POINT-SIZE="10">9</FONT></SUB>>, pos="2.08,0.67!"];
+}

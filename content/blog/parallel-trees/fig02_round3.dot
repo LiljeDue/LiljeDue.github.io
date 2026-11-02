@@ -1,0 +1,22 @@
+// Wyllie's list ranking, round 3. Each node shows its rank and, below, its index.
+// Grey nodes have succ = -1, so their rank is final.
+digraph {
+  rankdir=LR; ranksep=0.3;
+  node [shape=circle, width=0.55, fixedsize=true, fontname="Helvetica"];
+  edge [arrowsize=0.6];
+
+  label [shape=plaintext, width=0.9, label="Round 3"];
+  n0 [label=<7<BR/><FONT POINT-SIZE="8">[0]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n1 [label=<6<BR/><FONT POINT-SIZE="8">[1]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n2 [label=<5<BR/><FONT POINT-SIZE="8">[2]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n3 [label=<4<BR/><FONT POINT-SIZE="8">[3]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n4 [label=<3<BR/><FONT POINT-SIZE="8">[4]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n5 [label=<2<BR/><FONT POINT-SIZE="8">[5]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n6 [label=<1<BR/><FONT POINT-SIZE="8">[6]</FONT>>, style=filled, fillcolor="#dddddd"];
+  n7 [label=<0<BR/><FONT POINT-SIZE="8">[7]</FONT>>, style=filled, fillcolor="#dddddd"];
+
+  // Keeps the nodes in a row, in index order.
+  label -> n0 -> n1 -> n2 -> n3 -> n4 -> n5 -> n6 -> n7 [style=invis, weight=100];
+
+  // succ pointers
+}

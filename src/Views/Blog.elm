@@ -69,11 +69,32 @@ segment =
         ]
 
 
+blankLine : Parser ()
+blankLine =
+    Parser.succeed ()
+        |. Parser.chompWhile (\c -> c == ' ' || c == '\t' || c == '\r')
+        |. Parser.chompIf (\c -> c == '\n')
+
+
+separator : Parser ()
+separator =
+    Parser.succeed ()
+        |. Parser.token "\n"
+        |. blankLine
+        |. Parser.loop ()
+            (\_ ->
+                Parser.oneOf
+                    [ Parser.backtrackable blankLine |> Parser.map (\_ -> Loop ())
+                    , Parser.succeed (Done ())
+                    ]
+            )
+
+
 segmentHelp : List Segment -> Parser (Step (List Segment) (List Segment))
 segmentHelp acc =
     Parser.oneOf
         [ Parser.end |> Parser.map (\_ -> Done (List.reverse acc))
-        , Parser.token "\n\n" |> Parser.map (\_ -> Loop acc)
+        , Parser.backtrackable separator |> Parser.map (\_ -> Loop acc)
         , segment |> Parser.map (\seg -> Loop (seg :: acc))
         ]
 

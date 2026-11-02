@@ -14,6 +14,7 @@ pkgs.mkShell {
     nodePackages.http-server
     shellcheck
     python3
+    graphviz
   ]);
 
   shellHook =
