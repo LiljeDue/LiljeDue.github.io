@@ -5,9 +5,9 @@ from xml.sax.saxutils import escape
 def xml_escape(text):
     return escape(text, {"'": "&apos;", '"': "&quot;"})
 
-SITE_URL = "https://liljedue.github.io"
+SITE_URL = "https://liljedue.dk/"
 FEED_TITLE = "Lilje Due's Blog"
-FEED_AUTHOR = "Lilje Due"
+FEED_AUTHOR = "Lilje Henrich Due"
 
 entries = []
 for path in glob.glob("content/blog/*/post.json"):
