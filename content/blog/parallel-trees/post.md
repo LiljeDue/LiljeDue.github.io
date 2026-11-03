@@ -41,23 +41,22 @@ find its parent’s index. Node $[0]$ has no outgoing arrow, so it is the root a
 its parent is $-1$. Node $[1]$ points to node $[0]$, so its parent is $0$, and
 so on. The full flat representation is:
 
-````
+```
 [(10, -1), (20, 0), (30, 0), (40, 0), (50, 2), (60, 2), (70, 2)]
-````
+```
 
 Mapping a function over the nodes is then simply a parallel map over this array,
 which has work $O(n)$ and span $O(1)$, regardless of the shape of the tree.
 
 This representation can describe malformed trees, so we will assume that every
-tree is well-formed, that there are no cycles, and that exactly one node is the
-root. Together these guarantee that every node has a path to the root. We could
-also allow for a representation with more roots if we wanted but this would form
-a forest instead and may break certain operations you would want. Anyhow, for
-this representation we switch to Futhark, a functional language for
-data-parallel programming on arrays, which is a natural fit for trees in this
-form.
+tree is well-formed: every parent index is in bounds, there are no cycles, and
+exactly one node is the root. Together these guarantee that every node has a
+path to the root. We could also allow more than one root, but then we would have
+a forest instead, which may break some of the operations we want. For this
+representation we switch to Futhark, a functional language for data-parallel
+programming on arrays, which is a natural fit for trees in this form.
 
-````
+```
 type tree [n] 'a = [n](a, i64)
 
 def tree_map [n] 'a 'b (f: a -> b) (t: tree [n] a) : tree [n] b =
@@ -65,7 +64,7 @@ def tree_map [n] 'a 'b (f: a -> b) (t: tree [n] a) : tree [n] b =
 
 def example : tree [7] i32 =
   [(10, -1), (20, 0), (30, 0), (40, 0), (50, 2), (60, 2), (70, 2)]
-````
+```
 
 This representation differs from the Haskell data type in which direction the
 pointers go: the Haskell tree tells you each node’s children, while the flat
