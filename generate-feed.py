@@ -5,7 +5,7 @@ from xml.sax.saxutils import escape
 def xml_escape(text):
     return escape(text, {"'": "&apos;", '"': "&quot;"})
 
-SITE_URL = "https://liljedue.dk/"
+SITE_URL = "https://liljedue.dk"
 FEED_TITLE = "Lilje Due's Blog"
 FEED_AUTHOR = "Lilje Henrich Due"
 
