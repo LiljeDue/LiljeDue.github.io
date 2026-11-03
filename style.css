@@ -124,7 +124,22 @@ body {
   50%       { opacity: 1; }
 }
 
-.mjx-chtml {
+/* Math is rendered by pandoc as MathML. New Computer Modern Math (Book weight,
+   heavier strokes for screens) gives it the TeX look. */
+@font-face {
+  font-family: "NewCM Math Book";
+  src: url("/fonts/NewCMMath-Book.woff2") format("woff2");
+  font-display: swap;
+}
+
+math {
+  font-family: "NewCM Math Book", math;
+  /* Computer Modern's x-height is smaller than the sans-serif body text;
+     scale up a little so math sits closer to the text size. */
+  font-size: 1.1em;
+}
+
+math[display="block"] {
   margin: 1em 0;
 }
 

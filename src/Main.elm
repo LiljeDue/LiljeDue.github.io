@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Blog exposing (..)
 import Browser
@@ -16,9 +16,6 @@ import Views.Home exposing (..)
 import Views.NavBar exposing (viewNavBar)
 import Views.NotFound exposing (viewNotFound)
 import Views.Supervison exposing (viewSupervison)
-
-
-port renderMathJax : () -> Cmd msg
 
 
 handleBlogPostsResponse : String -> List String -> Result Http.Error (List String) -> Msg
@@ -159,36 +156,17 @@ main =
         }
 
 
-loadBlogPost : String -> Model -> ( Model, Cmd Msg )
-loadBlogPost href model =
-    case Dict.get href model.blogPosts of
-        Just post ->
-            ( { model | status = Loading }
-            , Http.get
-                { url = post.url
-                , expect = Http.expectString GotMarkdown
-                }
-            )
-
-        Nothing ->
-            ( model, Cmd.none )
+{-| Blog posts are static pages built by pandoc, so opening one is a full page
+load rather than an in-app navigation.
+-}
+blogPostUrl : String -> String
+blogPostUrl href =
+    "/blog/" ++ href ++ "/"
 
 
 urlChanged : Model -> Url.Url -> ( Model, Cmd Msg )
 urlChanged model url =
-    let
-        newPage =
-            fromUrl url
-
-        newModel =
-            { model | url = url, currentPage = newPage }
-    in
-    case newPage of
-        Blog href ->
-            loadBlogPost href newModel
-
-        _ ->
-            ( newModel, Cmd.none )
+    ( { model | url = url, currentPage = fromUrl url }, Cmd.none )
 
 
 navigateTo : Model -> Page -> ( Model, Cmd Msg )
@@ -206,48 +184,39 @@ navigateTo model page =
                     "/supervison"
 
                 Blog post ->
-                    "/blog/" ++ post
+                    blogPostUrl post
 
                 NotFound ->
                     "/not-found"
     in
-    ( model, Nav.pushUrl model.key url )
+    case page of
+        Blog _ ->
+            ( model, Nav.load url )
+
+        _ ->
+            ( model, Nav.pushUrl model.key url )
 
 
 linkClicked : Model -> Browser.UrlRequest -> ( Model, Cmd Msg )
 linkClicked model urlRequest =
     case urlRequest of
         Browser.Internal url ->
-            ( model, Nav.pushUrl model.key (Url.toString url) )
+            case fromUrl url of
+                Blog _ ->
+                    ( model, Nav.load (Url.toString url) )
+
+                _ ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
 
         Browser.External href ->
             ( model, Nav.load href )
-
-
-gotMarkdown : Model -> Result Http.Error String -> ( Model, Cmd Msg )
-gotMarkdown model result =
-    case result of
-        Ok content ->
-            ( { model | markdownContent = content, status = Success }, renderMathJax () )
-
-        Err error ->
-            ( { model | status = Failure error }, Cmd.none )
 
 
 gotBlogPosts : Model -> Result Http.Error (Dict String BlogPost) -> ( Model, Cmd Msg )
 gotBlogPosts model result =
     case result of
         Ok blogPosts ->
-            let
-                newModel =
-                    { model | blogPosts = blogPosts, status = Success }
-            in
-            case model.currentPage of
-                Blog href ->
-                    loadBlogPost href newModel
-
-                _ ->
-                    ( newModel, Cmd.none )
+            ( { model | blogPosts = blogPosts, status = Success }, Cmd.none )
 
         Err error ->
             ( { model | status = Failure error }, Cmd.none )
@@ -266,9 +235,6 @@ gotProjectPosts model result =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotMarkdown result ->
-            gotMarkdown model result
-
         LinkClicked urlRequest ->
             linkClicked model urlRequest
 
@@ -359,7 +325,6 @@ init params url key =
             fromUrl url
     in
     ( { content = trie
-      , markdownContent = ""
       , projectIntroContent = ""
       , projectMarkdownContent = ""
       , baseContentUrl = params.baseContentUrl

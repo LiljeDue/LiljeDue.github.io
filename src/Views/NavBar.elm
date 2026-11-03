@@ -1,4 +1,4 @@
-port module Views.NavBar exposing (viewNavBar)
+module Views.NavBar exposing (viewNavBar)
 
 import Blog exposing (..)
 import Html exposing (..)
@@ -6,9 +6,6 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Model exposing (..)
 import Time exposing (Month(..))
-
-
-port renderMathJax : () -> Cmd msg
 
 
 viewNavBarItem : Page -> Page -> String -> String -> Html Msg

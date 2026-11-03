@@ -10,11 +10,11 @@ pkgs.mkShell {
     elmPackages.elm-review
     elmPackages.elm-test
     nodejs
-    nodePackages.serve
-    nodePackages.http-server
+    http-server
     shellcheck
     python3
     graphviz
+    pandoc
   ]);
 
   shellHook =

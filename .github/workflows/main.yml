@@ -35,6 +35,10 @@ jobs:
         uses: jorelali/setup-elm@v6
         with:
           elm-version: 0.19.1
+
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
       - run: make build
 
       - name: Setup Pages

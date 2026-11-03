@@ -1,6 +1,7 @@
 import json, glob
-from datetime import datetime
+from datetime import date, datetime
 from xml.sax.saxutils import escape
+from html import escape as html_escape
 
 def xml_escape(text):
     return escape(text, {"'": "&apos;", '"': "&quot;"})
@@ -50,3 +51,14 @@ with open("content/feed.xml", "w") as f:
     f.write(atom)
 
 print(f"feed.xml generated with {len(entries)} entries")
+
+def post_item(e):
+    d = date.fromisoformat(e["date"])
+    return (f'                    <li><a href="/blog/{html_escape(e["slug"])}/">'
+            f'{html_escape(e["title"])}</a> ({d.day} {d:%B %Y})</li>')
+
+post_list = "<ul>\n" + "\n".join(map(post_item, entries)) + "\n                </ul>"
+with open("templates/index.html") as f:
+    template = f.read()
+with open("index.html", "w") as f:
+    f.write(template.replace("<!-- POSTS -->", post_list))

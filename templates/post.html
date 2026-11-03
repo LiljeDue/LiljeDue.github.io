@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>$title$ - Lilje Due</title>
+$if(description)$
+    <meta name="description" content="$description$">
+$endif$
+    <link rel="stylesheet" href="/style.css">
+    <link rel="alternate" type="application/atom+xml" title="LiljeDue's Blog" href="/content/feed.xml" />
+</head>
+<body>
+    <div>
+        <nav class="navbar">
+            <ul class="navbar-items">
+                <li class="navbar-item"><a class="navbar-link" href="/">Home</a></li>
+                <li class="navbar-item active"><a class="navbar-link" href="/blog">Blog</a></li>
+                <li class="navbar-item"><a class="navbar-link" href="/supervison">Supervison</a></li>
+            </ul>
+        </nav>
+        <div class="container">
+            <div class="content-display">
+                <div>
+                    <h1>$title$</h1>
+                    <p>$date-display$</p>
+                    <br class="content-sep">
+                    <div class="markdown-content">
+$body$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -49,7 +49,6 @@ type alias ProjectPost =
 
 type alias Model =
     { content : Trie ()
-    , markdownContent : String
     , projectIntroContent : String
     , projectMarkdownContent : String
     , baseContentUrl : String
@@ -72,8 +71,7 @@ type Status
 
 
 type Msg
-    = GotMarkdown (Result Http.Error String)
-    | GotBlogPosts (Result Http.Error (Dict String BlogPost))
+    = GotBlogPosts (Result Http.Error (Dict String BlogPost))
     | GotProjectPosts (Result Http.Error (Dict String ProjectPost))
     | GotProjectIntro (Result Http.Error String)
     | GotProjectMarkdown (Result Http.Error String)

@@ -1,11 +1,11 @@
-.PHONY: clean build build-debug host host-debug
+.PHONY: clean build build-debug host host-debug pages
 
 ELM_SRC = src/Main.elm
 ELM_OUT = elm.js
 CONTENT_PORT = 8000
 APP_PORT = 3000
 CONTENT_SERVER = http-server -p $(CONTENT_PORT) --cors -c-1 --no-clipboard content
-APP_SERVER = serve -p $(APP_PORT) -s --no-clipboard .
+APP_SERVER = http-server -p $(APP_PORT) -c-1 --no-clipboard .
 SERVER_START = @echo "Starting content server on http://localhost:$(CONTENT_PORT)"; \
 	echo "Starting main app on http://localhost:$(APP_PORT)"; \
 	$(CONTENT_SERVER) & \
@@ -13,13 +13,31 @@ SERVER_START = @echo "Starting content server on http://localhost:$(CONTENT_PORT
 	trap 'kill 0' EXIT; \
 	wait
 
-feed.xml: $(wildcard content/blog/*/post.json)
+# generate-feed.py writes content/feed.xml and index.html (from
+# templates/index.html, with the no-JS list of blog posts filled in).
+feed.xml index.html &: $(wildcard content/blog/*/post.json) templates/index.html generate-feed.py
 	python3 generate-feed.py
 
-build: 404.html feed.xml content.js
+# Blog posts are rendered to static HTML (math as MathML) by pandoc.
+BLOG_POSTS = $(wildcard content/blog/*/post.md)
+BLOG_PAGES = $(patsubst content/blog/%/post.md,blog/%/index.html,$(BLOG_POSTS))
+PANDOC_TEMPLATE = templates/post.html
+PANDOC_FILTERS = templates/date.lua templates/math-spacing.lua
+
+blog/%/index.html: content/blog/%/post.md content/blog/%/post.json $(PANDOC_TEMPLATE) $(PANDOC_FILTERS)
+	@mkdir -p $(dir $@)
+	pandoc $< -f markdown-implicit_figures -t html5 --mathml \
+	  --template $(PANDOC_TEMPLATE) \
+	  $(addprefix --lua-filter ,$(PANDOC_FILTERS)) \
+	  --metadata-file content/blog/$*/post.json \
+	  -o $@
+
+pages: $(BLOG_PAGES)
+
+build: 404.html feed.xml content.js pages
 	elm make $(ELM_SRC) --output=$(ELM_OUT) --optimize
 
-build-debug: 404.html feed.xml content.js
+build-debug: 404.html feed.xml content.js pages
 	elm make $(ELM_SRC) --output=$(ELM_OUT)
 
 host: build
@@ -40,4 +58,5 @@ content.js: content 404.html
 	@cp index.html 404.html
 
 clean:
-	rm -f content.js 404.html $(ELM_OUT) content/feed.xml
+	rm -f content.js index.html 404.html $(ELM_OUT) content/feed.xml
+	rm -rf blog
