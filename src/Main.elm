@@ -151,7 +151,7 @@ main : Program Parameters Model Msg
 main =
     Browser.application
         { init = init
-        , view = \model -> { title = "Due's Website", body = [ view model ] }
+        , view = \model -> { title = "Lilje Due", body = [ view model ] }
         , update = update
         , subscriptions = \_ -> Sub.none
         , onUrlChange = UrlChanged

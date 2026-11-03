@@ -6,8 +6,8 @@ def xml_escape(text):
     return escape(text, {"'": "&apos;", '"': "&quot;"})
 
 SITE_URL = "https://liljedue.github.io"
-FEED_TITLE = "LiljeDue's Blog"
-FEED_AUTHOR = "LiljeDue"
+FEED_TITLE = "Lilje Due's Blog"
+FEED_AUTHOR = "Lilje Due"
 
 entries = []
 for path in glob.glob("content/blog/*/post.json"):
