@@ -1,5 +1,5 @@
 {
-  "title": "How To Parallize Your Tree Operations",
+  "title": "How To Parallelize Your Tree Operations",
   "date": "2026-11-02",
   "author": "Lilje Henrich Due",
   "description": "Computations on trees are often seen as inherently sequential. In this post, I will show how to compute things like node depths and subtree sizes in parallel."
