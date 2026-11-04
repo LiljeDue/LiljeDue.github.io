@@ -15,7 +15,7 @@ import Views.Blog exposing (..)
 import Views.Home exposing (..)
 import Views.NavBar exposing (viewNavBar)
 import Views.NotFound exposing (viewNotFound)
-import Views.Supervison exposing (viewSupervison)
+import Views.Supervision exposing (viewSupervision)
 
 
 handleBlogPostsResponse : String -> List String -> Result Http.Error (List String) -> Msg
@@ -180,8 +180,8 @@ navigateTo model page =
                 Blogs ->
                     "/blog"
 
-                Supervison ->
-                    "/supervison"
+                Supervision ->
+                    "/supervision"
 
                 Blog post ->
                     blogPostUrl post
@@ -305,8 +305,8 @@ viewContent model =
         Blogs ->
             viewBlogPosts model
 
-        Supervison ->
-            viewSupervison model
+        Supervision ->
+            viewSupervision model
 
         Blog post ->
             viewBlog model post

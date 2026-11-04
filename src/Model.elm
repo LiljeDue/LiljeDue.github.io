@@ -23,7 +23,7 @@ import Url.Parser as Parser exposing ((</>), Parser)
 type Page
     = Home
     | Blogs
-    | Supervison
+    | Supervision
     | Blog String
     | NotFound
 
@@ -89,7 +89,8 @@ routeParser =
         [ Parser.map Home Parser.top
         , Parser.map Home (Parser.s "home")
         , Parser.map Blogs (Parser.s "blog")
-        , Parser.map Supervison (Parser.s "supervison")
+        , Parser.map Supervision (Parser.s "supervision")
+        , Parser.map Supervision (Parser.s "supervison") -- old misspelled URL
         , Parser.map Blog (Parser.s "blog" </> Parser.string)
         ]
 

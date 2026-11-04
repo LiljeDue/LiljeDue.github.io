@@ -1,4 +1,4 @@
-module Views.Supervison exposing (viewSupervison)
+module Views.Supervision exposing (viewSupervision)
 
 import Dict
 import Html exposing (..)
@@ -9,8 +9,8 @@ import Markdown exposing (toHtml)
 import Model exposing (..)
 
 
-viewSupervison : Model -> Html Msg
-viewSupervison model =
+viewSupervision : Model -> Html Msg
+viewSupervision model =
     let
         cards =
             Dict.values model.projectPosts
@@ -31,7 +31,7 @@ viewSupervison model =
                     text ""
     in
     div [ class "content-display" ]
-        [ h1 [] [ text "Supervison" ]
+        [ h1 [] [ text "Supervision" ]
         , if model.projectIntroContent /= "" then
             toHtml [ class "markdown-content" ] model.projectIntroContent
 
