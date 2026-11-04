@@ -40,7 +40,7 @@ def atom_entry(e):
 atom = f"""<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>{FEED_TITLE}</title>
-  <link href="{SITE_URL}/feed.xml" rel="self"/>
+  <link href="{SITE_URL}/content/feed.xml" rel="self"/>
   <link href="{SITE_URL}/"/>
   <id>{SITE_URL}/</id>
   <updated>{updated}</updated>
