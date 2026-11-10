@@ -1,0 +1,15 @@
+digraph {
+  node [shape=circle, width=0.6, fixedsize=true];
+  edge [dir=back];
+
+  i0 [label=<10<BR/><FONT POINT-SIZE="9">[0]</FONT>>];
+  i1 [label=<20<BR/><FONT POINT-SIZE="9">[1]</FONT>>];
+  i2 [label=<30<BR/><FONT POINT-SIZE="9">[2]</FONT>>];
+  i3 [label=<40<BR/><FONT POINT-SIZE="9">[3]</FONT>>];
+  i4 [label=<50<BR/><FONT POINT-SIZE="9">[4]</FONT>>];
+  i5 [label=<60<BR/><FONT POINT-SIZE="9">[5]</FONT>>];
+  i6 [label=<70<BR/><FONT POINT-SIZE="9">[6]</FONT>>];
+
+  i0 -> {i1 i2 i3};
+  i2 -> {i4 i5 i6};
+}

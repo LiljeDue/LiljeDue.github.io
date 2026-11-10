@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lilje Due</title>
+    <link rel="stylesheet" href="/style.css">
+    <!-- Load content definitions before Elm -->
+    <script src='/content.js'></script>
+    <link rel="alternate" type="application/atom+xml" title="LiljeDue's Blog" href="/content/feed.xml" />
+</head>
+<body>
+    <div id="elm-app"></div>
+    <noscript>
+        <div class="container">
+            <div class="content-display">
+                <p><em>This site is built with Elm and needs JavaScript for most pages.
+                    Blog posts can still be read without it.</em></p>
+                <h1>Lilje Due's Website</h1>
+                <p>I am Lilje Henrich Due, a PhD student in the
+                    <a href="https://di.ku.dk/english/research/pltc/">PLTC</a> section at
+                    <a href="https://di.ku.dk/">DIKU</a>, supervised by
+                    <a href="https://hjemmesider.diku.dk/~athas/">Troels Henriksen</a>.
+                    My research interests are in data-parallel programming and
+                    high-performance computing.</p>
+                <p>
+                    <a href="mailto:due@di.ku.dk">Email</a> ·
+                    <a href="https://github.com/LiljeDue">GitHub</a> ·
+                    <a href="https://linkedin.com/in/lilje-henrich-due-177937152">LinkedIn</a> ·
+                    <a href="/content/feed.xml">Blog feed (Atom/RSS)</a>
+                </p>
+                <h2>Blog posts</h2>
+                <!-- POSTS -->
+            </div>
+        </div>
+    </noscript>
+    <script src="/elm.js"></script>
+    <script>
+        // Use local URL when debugging (localhost), otherwise use GitHub URL
+        var baseContentUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? "http://localhost:8000"
+            : "https://raw.githubusercontent.com/LiljeDue/LiljeDue.github.io/refs/heads/main/content";
+        
+        console.log("Base Content URL:", baseContentUrl);
+
+        var app = Elm.Main.init({
+            node: document.getElementById('elm-app'),
+            flags: {
+                baseContentUrl: baseContentUrl,
+                content:  content // This should be defined in content.js
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+{
+  "title": "Dynamic functional array language hash maps",
+  "description": "Extend static data-parallel Futhark hash maps to support dynamic key insertion."
+}

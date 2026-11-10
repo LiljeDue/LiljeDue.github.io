@@ -1,0 +1,299 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #333;
+  max-width: 1000px;
+  margin: 0 auto;
+  font-size: 24px;
+}
+
+.container {
+  width: 100%;
+}
+
+.navbar-items {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.navbar-item {
+  float: left;
+}
+
+.navbar-item a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 10px 15px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navbar-item a:hover {
+  background-color: #111;
+}
+
+.navbar-item.active a {
+  background-color: #ff00f2;
+}
+
+.content-sep {
+    display: block;
+    content: "";
+    line-height: 0.5em; /* adjust to taste */
+}
+
+.content-display, .error-display, .loading-display  {
+  background-color: #fff;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border: 0 1px 1px solid #ddd;
+  overflow-x: auto;
+}
+
+.loading-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.markdown-content h1 {
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-content pre {
+    white-space: pre-wrap;
+    white-space-collapse: preserve;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.markdown-content p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.error-display {
+  color: #e74c3c;
+  background-color: #fadbd8;
+}
+
+.loading-spinner-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 5px solid rgba(255, 0, 242, 0.15);
+  border-top-color: #ff00f2;
+  animation: spin 0.9s linear infinite, pulse-glow 1.5s ease-in-out infinite;
+}
+
+.loading-text {
+  margin-top: 20px;
+  color: #aaa;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: fade-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 0, 242, 0.2); }
+  50%       { box-shadow: 0 0 18px 6px rgba(255, 0, 242, 0.55); }
+}
+
+@keyframes fade-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* Math is rendered by pandoc as MathML. New Computer Modern Math (Book weight,
+   heavier strokes for screens) gives it the TeX look. */
+@font-face {
+  font-family: "NewCM Math Book";
+  src: url("/fonts/NewCMMath-Book.woff2") format("woff2");
+  font-display: swap;
+}
+
+math {
+  font-family: "NewCM Math Book", math;
+  /* Computer Modern's x-height is smaller than the sans-serif body text;
+     scale up a little so math sits closer to the text size. */
+  font-size: 1.1em;
+}
+
+math[display="block"] {
+  margin: 1em 0;
+}
+
+.blog-card {
+  background-color: #fff;
+  padding : 10px 15px;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 5px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+}
+
+.blog-card:hover  {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.blog-card h1 {
+  margin: 0;
+}
+
+.blog-card p {
+  margin: 0.5em 0;
+}
+
+.blog-card br {
+  content: "";
+  margin: 3em;
+  display: block;
+  font-size: 24%;
+}
+
+.links-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.links-icons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.links-icon {
+  width: 60px;
+  height: 60px;
+  padding: 5px;
+}
+
+.blog-heading {
+  display: flex;
+  align-items: center;
+}
+
+.atom-rss-link {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #666;
+}
+
+.atom-rss-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.atom-rss-label {
+  font-size: 0.7rem;
+  color: #ff8c00;
+}
+
+.project-card {
+  background-color: #fff;
+  padding: 10px 15px;
+  margin: 20px 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 0, 242, 0.2);
+  transform: translateY(-2px);
+}
+
+.project-card h2 {
+  margin: 0 0 0.3em 0;
+}
+
+.project-card p {
+  margin: 0;
+  color: #555;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fade-in 0.15s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 36px;
+  max-width: 720px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  animation: slide-up 0.2s ease;
+}
+
+.modal-card h2 {
+  margin-top: 0;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.markdown-content img {
+    display: block;
+    margin: 1em auto;
+    max-width: 100%;
+}
